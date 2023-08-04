@@ -1,6 +1,6 @@
 function GetLoginStatus(){
-    const _status = localStorage.getItem("login") || false;
-    return _status;
+    // const _status = localStorage.getItem("login") || false;
+    // return _status;
 }
 
 function stringEscape(s) {

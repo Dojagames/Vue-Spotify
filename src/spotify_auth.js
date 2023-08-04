@@ -8,8 +8,8 @@ const USER = 'https://accounts.spotify.com/v1/me'
 let client_id = undefined;
 let client_secret = undefined;
 
-var access_token = null;
-var refresh_token = null;
+var access_token = undefined;
+var refresh_token = undefined;
 
 
 // callApi( "GET", PLAYLISTS, null, handlePlaylistsResponse );
@@ -25,13 +25,5 @@ async function fetchWebApi(endpoint, method, body) {
       body:JSON.stringify(body)
     });
     return await res.json();
-}
-
-function refreshAccessToken(){
-    refresh_token = localStorage.getItem("refresh_token");
-    let body = "grant_type=refresh_token";
-    body += "&refresh_token=" + refresh_token;
-    body += "&client_id=" + client_id;
-    callAuthorizationApi(body);
 }
 

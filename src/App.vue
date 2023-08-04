@@ -26,7 +26,9 @@ export default {
       usermodel: {},
       user_img: "/test.png",
 
-      player: undefined,
+      player: {
+        item: "",
+      },
       player_raw: undefined,
       player_img: "",
       player_title: "",
@@ -71,10 +73,13 @@ export default {
           }
           else if ( this.status == 401 ){
               currentScope.$refs.auth_child.refreshAccessToken();
+          } else if ( this.status == 204 ){
+              if(instruction == "playerState"){
+                console.log("player isnt playing");
+              }
           }
           else {
-              console.log(this.responseText);
-              alert("error");
+              console.log(this.status);
           }
         };
     },
@@ -90,8 +95,10 @@ export default {
         this.usermodel = _data;
         this.username = _data.display_name.toString;
         this.user_img = _data.images[0].url;
-      } else if(instruction == "playerState"){
 
+      } else if(instruction == "playerState"){
+        if(_data.is_playing == false) return;
+        console.log(_data);
         const temp = _data.item.name.toString();
 
         // this.player = {
@@ -104,16 +111,18 @@ export default {
         this.player_title = _data.item.name.toString();
         this.player_raw = _data;
         
-      this.player = _data;
+        this.player = _data;
 
         //console.log(data);
         console.log(this.player.item.name);
 
-      }
+      } 
     },
 
 
+    RefreshPlayer(_data){
 
+    },
 
 
 
@@ -219,8 +228,8 @@ export default {
       
   },
   mounted(){
-    const _tempLogin = GetLoginStatus();
-    this.loggedIn = _tempLogin;
+    // const _tempLogin = GetLoginStatus();
+    // this.loggedIn = _tempLogin;
 
 
   },
@@ -301,9 +310,12 @@ export default {
             <img id="playerImg" v-bind:src="player_img">
             <div id="playerPlaying" >
                <p>{{ this.player.item.name }}</p>
-              <!--<p v-for="artists in player.artists">{{ artists.name }}</p> -->
-              <!-- <p>Dead Butterflies</p>
-              <small>Disarstar</small> -->
+               <div id="playerArtist">
+                <small v-for="(artists, index) in player.item.artists">
+                  <small v-if="index != 0 || index == player.item.artists.length">,</small>
+                  {{ artists.name }}
+                </small>
+               </div>
             </div>
             <div id="playerLiked"></div>
           </div>
@@ -321,7 +333,9 @@ export default {
 
             <div id="playerCenterBarBottom">
               <div id="playerCurrerntTime"></div>
-              <div id="playerProgress"></div>
+              <div id="playerProgress">
+                <div id="playerProgressCurrent"></div>
+              </div>
               <div id="playerTotalTime"></div>
             </div>
 
@@ -367,6 +381,14 @@ export default {
 
   .clickable{
     cursor: pointer;
+  }
+
+  .playerButton{
+    opacity: 0.9;
+  }
+
+  .playerButton:hover{
+    opacity: 1;
   }
 
 
@@ -427,7 +449,7 @@ export default {
 
   #playerLeftBar{
     position: absolute;
-    width: 300px;
+    width: 400px;
     height: 80px;
 
     top: 15px;
@@ -443,14 +465,14 @@ export default {
   }
 
   #playerPlaying{
-    width: 220px;
+    width: fit-content;
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     position: absolute;
     left: 90px;
-    top: 0px;
+    top: -3px;
     margin: 0;
     padding: 0;
   }
@@ -458,6 +480,105 @@ export default {
   #playerPlaying p{
     line-height: 0%;
   }
+
+  #playerArtist{
+    line-height: 70%;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  
+  /* #playerArtist:hover {  
+    overflow:visible;
+    animation: scrolling 12s .2s linear 1;
+  }
+
+
+  @keyframes scrolling {
+    from { top: 0; transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-100%, 0, 0); }
+  } */
+
+  #playerArtist small {
+    
+  }
+
+
+
+
+
+
+
+
+  #playerCenterBar{
+    position: absolute;
+    width: 700px;
+    height: 80px;
+
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    background-color: rgba(250, 235, 215, 0.26);
+  }
+
+
+
+  #playerCenterBarTop{
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 65%;
+
+    background-color: rgba(255, 0, 0, 0.192);
+  }
+
+
+  #playerProgress{
+    width: 80%;
+    left: 10%;
+  }
+
+
+
+
+
+
+  #playerCenterBarBottom{
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 35%;
+
+    background-color: rgba(0, 255, 170, 0.192);
+  }
+
+
+
+
+
+
+
+
+
+
+
+  #playerRightBar{
+    position: absolute;
+    width: 400px;
+    height: 80px;
+
+    top: 15px;
+    right: 15px;
+
+    background-color: rgba(250, 235, 215, 0.26);
+  }
+
+
+
+
+
+
+
 
 
 

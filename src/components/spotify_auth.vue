@@ -22,12 +22,11 @@ export default {
             }
             else{
                 access_token = localStorage.getItem("access_token");
-
                 if ( access_token == null ){
-                    localStorage.setItem("login", false);
-                    location.reload();
+                    // localStorage.setItem("login", false);
+                    // location.reload();
                 } else {
-                    this.$emit('response', {});
+                    this.refreshAccessToken();
                 }
 
                 
@@ -71,7 +70,6 @@ export default {
             xhr.onload = function ()  {
                 if ( this.status == 200 ){
                     var data = JSON.parse(this.responseText);
-                    console.log(data);
                     tempScope.$emit('response', data);
                     var data = JSON.parse(this.responseText);
                     if ( data.access_token != undefined ){
@@ -79,7 +77,7 @@ export default {
                         localStorage.setItem("access_token", access_token); 
                         const unixseconds = Math.round(new Date().getTime() / 1000);
                         localStorage.setItem("token_timer", (unixseconds + data.expires_in));    
-                        localStorage.setItem("login", true)
+                        localStorage.setItem("login", true);
                     }
                     if ( data.refresh_token  != undefined ){
                         refresh_token = data.refresh_token;
