@@ -1,29 +1,15 @@
 # Vue-Spotify
 
-This template should help get you started developing with Vue 3 in Vite.
+Spotify web player & playlist editor
 
-## Recommended IDE Setup
+## how to log in
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+got to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and log in with your credentials
 
-## Customize configuration
+Then click on Create App and Select a name
+set Website and Redirect Url to "spotify.jonx.dev"
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+save the App  
 
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Compile and Minify for Production
-
-```sh
-npm run build
-```
+open the app and click on settings
+copy the client id and client secret and login with them on [spotify.jonx.dev](spotify.jonx.dev)
