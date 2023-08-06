@@ -327,7 +327,7 @@ export default {
                     {{ artists.name }}
                   </small>
                 </div>
-                <div id="playerLiked">
+                <div id="playerLiked" class="unmarkable">
                   <img v-if="isCurrentSongLiked" src="iconation/heart_green.png" class="likedIconPlayer">
                   <img v-else src="iconation/heart.png" class="likedIconPlayer">
                 </div>
@@ -337,10 +337,10 @@ export default {
           </div>
 
 
-          <div id="playerCenterBar">
+          <div id="playerCenterBar" class="unmarkable">
 
             <div id="playerCenterBarTop">
-              <div id="playerShuffle">
+              <div id="playerShuffle" >
                 <img v-if="player.shuffle_state" src="public/iconation/shuffle_active.png">
                 <img v-else src="iconation/shuffle.png">
               </div>
@@ -565,9 +565,42 @@ export default {
     top: 0;
     width: 100%;
     height: 75%;
-
-    background-color: rgba(255, 0, 0, 0.192);
+    display: inline;
   }
+
+  #playerCenterBarTop img{
+    width: 28px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  #playerPrevious {
+    left: 38%;
+  }
+
+  #playerNext {
+    right: 38%;
+  }
+
+
+  #playerPlay img{
+    width: 44px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  #playerLoop img{
+    right: 30%;
+    width: 24px;
+  }
+
+  #playerShuffle img {
+    left: 30%;
+    width: 28px;
+  }
+
+
 
 
 
