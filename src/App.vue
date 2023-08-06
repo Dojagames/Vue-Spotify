@@ -27,11 +27,21 @@ export default {
       user_img: "/test.png",
 
       player: {
-        item: "",
+        item: {
+          name: "",
+          album: {
+            images:[{},{url: ""}],
+          }
+        },
       },
       player_raw: undefined,
       player_img: "",
       player_title: "",
+
+      currentSongProgress: 0,
+      currentSongDurationTime: "0:00",
+      currentSongProgressTime: "0:00",
+
     }
   },
   components: {
@@ -41,22 +51,10 @@ export default {
       
   },
   methods: {
+
     RequestAuthorization(_id, _secret){
-        client_id = _id;
-        client_secret = _secret;
-
-        localStorage.setItem("client_id", _id);
-        localStorage.setItem("client_secret", _secret); // In a real app you should not expose your client_secret to the user
-
-        let url = AUTHORIZE;
-        url += "?client_id=" + _id;
-        url += "&response_type=code";
-        url += "&redirect_uri=" + redirect_uri;
-        url += "&show_dialog=true";
-        url += "&scope=user-read-private user-read-email user-modify-playback-state user-read-playback-position user-library-read streaming user-read-playback-state user-read-recently-played playlist-read-private";
-        window.location.href = url; // Show Spotify's authorization screen
+      this.$refs.auth_child.RequestAuthorization(_id, _secret);
     },
-
 
 
     CallApi(method, url, body, instruction){
@@ -98,23 +96,19 @@ export default {
 
       } else if(instruction == "playerState"){
         if(_data.is_playing == false) return;
+
         console.log(_data);
-        const temp = _data.item.name.toString();
-
-        // this.player = {
-        //   img: _data.item.album.images[1].url,
-        //   title: (_data.item.name).toString,
-        //   //artists: String(_data.item.artists[0].name), 
-        // };
-
-        this.player_img = _data.item.album.images[1].url;
-        this.player_title = _data.item.name.toString();
-        this.player_raw = _data;
         
         this.player = _data;
 
+        this.currentSongProgress = _data.progress_ms / _data.item.duration_ms * 100;
+
+        
+
+        this.currentSongProgressTime = (Math.floor((_data.progress_ms / 1000) / 60)).toString() + ":" + (Math.floor(_data.progress_ms / 1000) % 60).toString().padStart(2, "0"); 
+        this.currentSongDurationTime = (Math.floor((_data.item.duration_ms / 1000) / 60)).toString() + ":" + (Math.floor(_data.item.duration_ms / 1000) % 60).toString().padStart(2, "0"); 
         //console.log(data);
-        console.log(this.player.item.name);
+
 
       } 
     },
@@ -267,7 +261,7 @@ export default {
     </div> 
 
     <div id="userprofile">
-      <div id="userIcon" class="clickable">
+      <div id="userIcon" class="clickable unmarkable">
         <img v-bind:src="user_img">
         <p v-bind="username"></p>
       </div>
@@ -307,11 +301,11 @@ export default {
 
 
           <div id="playerLeftBar">
-            <img id="playerImg" v-bind:src="player_img">
+            <img id="playerImg" v-bind:src="this.player.item.album.images[1].url" class="unmarkable">
             <div id="playerPlaying" >
-               <p>{{ this.player.item.name }}</p>
+               <p class="unmarkable">{{ this.player.item.name }}</p>
                <div id="playerArtist">
-                <small v-for="(artists, index) in player.item.artists">
+                <small v-for="(artists, index) in player.item.artists" class="unmarkable">
                   <small v-if="index != 0 || index == player.item.artists.length">,</small>
                   {{ artists.name }}
                 </small>
@@ -332,11 +326,11 @@ export default {
             </div>
 
             <div id="playerCenterBarBottom">
-              <div id="playerCurrerntTime"></div>
+              <div id="playerCurrerntTime" class="unmarkable">{{ currentSongProgressTime }}</div>
               <div id="playerProgress">
-                <div id="playerProgressCurrent"></div>
+                <div id="playerProgressCurrent" :style="{'width': currentSongProgress + '%'}"></div>
               </div>
-              <div id="playerTotalTime"></div>
+              <div id="playerTotalTime" class="unmarkable">{{ currentSongDurationTime }}</div>
             </div>
 
           </div>
@@ -361,6 +355,16 @@ export default {
 </template>
 
 <style scoped>
+
+  /* vars */
+  :root{
+    --mainBackground: #121212;
+    --firstElementBackground: #212121;
+    --accentGreen: #1db954;
+    --secondElementBackground: #535353;
+    --thirdElementBackground: #b3b3b3;
+  }
+
   #sessionTimer{
     position: absolute;
     left: 15px;
@@ -381,6 +385,15 @@ export default {
 
   .clickable{
     cursor: pointer;
+  }
+
+  .unmarkable{
+    -webkit-touch-callout: none; 
+    -webkit-user-select: none;
+    -khtml-user-select: none; 
+    -moz-user-select: none;
+    -ms-user-select: none; 
+    user-select: none; 
   }
 
   .playerButton{
@@ -527,17 +540,10 @@ export default {
     position: absolute;
     top: 0;
     width: 100%;
-    height: 65%;
+    height: 75%;
 
     background-color: rgba(255, 0, 0, 0.192);
   }
-
-
-  #playerProgress{
-    width: 80%;
-    left: 10%;
-  }
-
 
 
 
@@ -547,16 +553,41 @@ export default {
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 35%;
+    height: 25%;
 
     background-color: rgba(0, 255, 170, 0.192);
   }
 
 
+  #playerProgress{
+    width: 80%;
+    height: 40%;
+    top: 30%;
+    left: 10%;
+    border-radius: 30px;
+    position: relative;
+    background-color: blueviolet;
+  }
+
+  #playerProgressCurrent{
+    width: 10%;
+    height: 100%;
+    border-radius: 30px;
+
+    background-color: blue;
+  }
+
+  #playerCurrerntTime{
+    position: absolute;
+    right: calc(90% + 5px);
+  }
 
 
-
-
+  #playerTotalTime{
+    position: absolute;
+    top: 0;
+    left: calc(90% + 5px);
+  }
 
 
 

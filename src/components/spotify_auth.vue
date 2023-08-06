@@ -99,7 +99,21 @@ export default {
             this.callAuthorizationApi(body);
         },
 
+        RequestAuthorization(_id, _secret){
+        client_id = _id;
+        client_secret = _secret;
 
+        localStorage.setItem("client_id", _id);
+        localStorage.setItem("client_secret", _secret); // In a real app you should not expose your client_secret to the user
+
+        let url = AUTHORIZE;
+        url += "?client_id=" + _id;
+        url += "&response_type=code";
+        url += "&redirect_uri=" + redirect_uri;
+        url += "&show_dialog=true";
+        url += "&scope=user-read-private user-read-email user-modify-playback-state user-read-playback-position user-library-read streaming user-read-playback-state user-read-recently-played playlist-read-private";
+        window.location.href = url; // Show Spotify's authorization screen
+    },
 
 
 
