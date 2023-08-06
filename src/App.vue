@@ -99,7 +99,10 @@ export default {
         this.user_img = _data.images[0].url;
 
       } else if(instruction == "playerState"){
-        if(_data.is_playing == false) return;
+        if(_data.is_playing == false) {
+          this.player.is_playing = false;
+
+        };
 
         console.log(_data);
         
@@ -337,11 +340,21 @@ export default {
           <div id="playerCenterBar">
 
             <div id="playerCenterBarTop">
-              <div id="playerShuffle"></div>
-              <div id="playerPrevious"></div>
-              <div id="playerPlay"></div>
-              <div id="playerNext"></div>
-              <div id="playerLoop"></div>
+              <div id="playerShuffle">
+                <img v-if="player.shuffle_state" src="public/iconation/shuffle_active.png">
+                <img v-else src="iconation/shuffle.png">
+              </div>
+              <img id="playerPrevious" src="iconation/rewind-button.png">
+              <div id="playerPlay">
+                <img v-if="player.is_playing" src="iconation/pause.png">
+                <img v-else src="iconation/play-button.png">
+              </div>
+              <img id="playerNext" src="iconation/skip.png">
+              <div id="playerLoop">
+                <img v-if="player.repeat_state == 'track'" src="iconation/RepeatOnce.png">
+                <img v-else-if="player.repeat_state == 'context'" src="iconation/repeat_active.png">
+                <img v-else src="iconation/repeat.png">
+              </div>
             </div>
 
             <div id="playerCenterBarBottom">
