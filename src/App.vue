@@ -38,6 +38,10 @@ export default {
       player_img: "",
       player_title: "",
 
+      isCurrentSongLiked: false,
+
+      currentSongId: "",
+
       currentSongProgress: 0,
       currentSongDurationTime: "0:00",
       currentSongProgressTime: "0:00",
@@ -99,6 +103,13 @@ export default {
 
         console.log(_data);
         
+        if(this.currentSongId != _data.item.id){
+          this.currentSongId = _data.item.id;
+          this.CallApi( "GET", "https://api.spotify.com/v1/me/tracks/contains?ids=" + this.currentSongId, null, "checkIfLiked");
+        }
+
+        
+
         this.player = _data;
 
         this.currentSongProgress = _data.progress_ms / _data.item.duration_ms * 100;
@@ -110,12 +121,9 @@ export default {
         //console.log(data);
 
 
-      } 
-    },
-
-
-    RefreshPlayer(_data){
-
+      } else if(instruction == "checkIfLiked"){
+        this.isCurrentSongLiked = _data[0];
+      }
     },
 
 
@@ -255,12 +263,7 @@ export default {
   </div>
 
   <div id="mainWrapper" v-else>
-    <div style="position: absolute; left: 20%; top: 20%; width: 120px; height: 30px; background-color: red; display: block;">
-      <button style="background-color: transparent;" @click="RefreshPlaylists()">test</button>
-      <p v-bind="username"></p>
-    </div> 
-
-    <div id="userprofile">
+      <div id="userprofile">
       <div id="userIcon" class="clickable unmarkable">
         <img v-bind:src="user_img">
         <p v-bind="username"></p>
@@ -290,6 +293,16 @@ export default {
       <div id="interactionWindow">
         
         <div id="interactionNavigation">
+          
+          
+          <div id="interactivePlayer" v-if="mode == 'player'">
+
+          </div>
+
+
+          <div id="interactivePlaylistEditor" v-else>
+
+          </div>
 
         </div>
 
@@ -302,16 +315,22 @@ export default {
 
           <div id="playerLeftBar">
             <img id="playerImg" v-bind:src="this.player.item.album.images[1].url" class="unmarkable">
-            <div id="playerPlaying" >
-               <p class="unmarkable">{{ this.player.item.name }}</p>
-               <div id="playerArtist">
-                <small v-for="(artists, index) in player.item.artists" class="unmarkable">
-                  <small v-if="index != 0 || index == player.item.artists.length">,</small>
-                  {{ artists.name }}
-                </small>
-               </div>
+
+              <div id="playerPlaying" >
+                <p class="unmarkable">{{ this.player.item.name }}</p>
+                <div id="playerArtist">
+                  <small v-for="(artists, index) in player.item.artists" class="unmarkable">
+                    <small v-if="index != 0 || index == player.item.artists.length">,</small>
+                    {{ artists.name }}
+                  </small>
+                </div>
+                <div id="playerLiked">
+                  <img v-if="isCurrentSongLiked" src="iconation/heart_green.png" class="likedIconPlayer">
+                  <img v-else src="iconation/heart.png" class="likedIconPlayer">
+                </div>
+
             </div>
-            <div id="playerLiked"></div>
+            
           </div>
 
 
@@ -354,7 +373,7 @@ export default {
 
 </template>
 
-<style scoped>
+<style>
 
   /* vars */
   :root{
@@ -457,7 +476,7 @@ export default {
     left: 0px;
     width: 100%;
     height: 110px;
-    background-color: black;
+    background-color: var(--mainBackground);
   }
 
   #playerLeftBar{
@@ -468,7 +487,7 @@ export default {
     top: 15px;
     left: 15px;
 
-    background-color: rgba(250, 235, 215, 0.26);
+    /* background-color: rgba(250, 235, 215, 0.26); */
 
   }
 
@@ -500,19 +519,12 @@ export default {
     white-space: nowrap;
   }
   
-  /* #playerArtist:hover {  
-    overflow:visible;
-    animation: scrolling 12s .2s linear 1;
-  }
-
-
-  @keyframes scrolling {
-    from { top: 0; transform: translate3d(0, 0, 0); }
-    to { transform: translate3d(-100%, 0, 0); }
-  } */
-
-  #playerArtist small {
-    
+  .likedIconPlayer{
+    width: 20px;
+    float: right;
+    position: absolute;
+    top: 45%;
+    right: -48px;
   }
 
 
@@ -531,7 +543,6 @@ export default {
     left: 50%;
     transform: translateX(-50%);
 
-    background-color: rgba(250, 235, 215, 0.26);
   }
 
 
@@ -554,8 +565,6 @@ export default {
     bottom: 0;
     width: 100%;
     height: 25%;
-
-    background-color: rgba(0, 255, 170, 0.192);
   }
 
 
@@ -566,7 +575,7 @@ export default {
     left: 10%;
     border-radius: 30px;
     position: relative;
-    background-color: blueviolet;
+    background-color: var(--secondElementBackground);
   }
 
   #playerProgressCurrent{
@@ -574,7 +583,7 @@ export default {
     height: 100%;
     border-radius: 30px;
 
-    background-color: blue;
+    background-color: var(--accentGreen);
   }
 
   #playerCurrerntTime{
