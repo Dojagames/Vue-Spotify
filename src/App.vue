@@ -12,15 +12,15 @@ export default {
       id: "934b2170ecfb4f34af81a0d0b159d851",
       secret: '61095338f0164dc98b728d7c930fe50e',
 
-      loggedIn: false,
+      mode: "player",
 
 
-
-
-      playlists: [],
-      totalPlaylists: null,
-
-
+      playlists: [
+        // {name: "test", tracks:{total: 5}, images: [{url: "https://i.scdn.co/image/ab67616d00004851dbf39405c765e4f4a7b9ad89"}]},
+        
+      ],
+      currentPlaylist: undefined,
+      currentPlaylistSongs: [],
 
       username: "",
       usermodel: {},
@@ -31,7 +31,10 @@ export default {
           name: "",
           album: {
             images:[{},{url: ""}],
-          }
+          },
+        },
+        device: {
+            volume_percent: 100,
         },
       },
       player_raw: undefined,
@@ -88,9 +91,6 @@ export default {
 
 
     
-    RefreshPlaylists(){
-      this.CallApi( "GET", "https://api.spotify.com/v1/me/playlists", null,);
-    },
 
     doSmtWithData(_data, instruction){
       if(instruction == "initial"){
@@ -101,7 +101,7 @@ export default {
       } else if(instruction == "playerState"){
         if(_data.is_playing == false) {
           this.player.is_playing = false;
-
+          return;
         };
 
         console.log(_data);
@@ -126,11 +126,35 @@ export default {
 
       } else if(instruction == "checkIfLiked"){
         this.isCurrentSongLiked = _data[0];
+      } else if(instruction == "InitialPlaylistSync"){
+        const _length = _data.total;
+
+        var _iterations = Math.floor(_length / 50);
+        var _lastIteration = _length % 50;
+
+        for(var i = 0; i < _iterations; i++){
+          this.CallApi( "GET", `https://api.spotify.com/v1/me/playlists?limit=50&offset=${50 * i}`, null, "PlaylistInitialAdd");
+        }
+          
+
+        this.CallApi( "GET", `https://api.spotify.com/v1/me/playlists?limit=${_lastIteration}&offset=${50 * _iterations}`, null, "PlaylistInitialAdd");
+      } else if(instruction == "PlaylistInitialAdd"){
+
+        _data.items.forEach(e => {
+          if(e.images.length == 0){e.images.push("")}
+        });
+        this.playlists = this.playlists.concat(_data.items);
+        console.log(this.playlists);
+
+      } else if(instruction == "getSongsFromCurrentPlaylist"){
+
+        this.currentPlaylistSongs = _data.items
+        console.log(_data);
+
       }
     },
 
-
-
+//this.AddPlaylist()
 
 
 
@@ -143,6 +167,7 @@ export default {
 
       this.CallApi( "GET", "https://api.spotify.com/v1/me/", null, "initial");
       
+      this.CallApi( "GET", "https://api.spotify.com/v1/me/playlists?limit=1", null, "InitialPlaylistSync")
 
       let interval = false;
       if(!interval){
@@ -157,73 +182,6 @@ export default {
 
       this.window = 'main';
     },
-
-
-
-
-
-    GetUser(){
-      var tempScope = this;
-      var temp;
-
-      (async() => {
-        return await (fetchWebApi('v1/me/', 'GET').then((e => tempScope.username = e.display_name)));
-      })();
-
-      this.username = this.usermodel.display_name;
-      console.log(this.usermodel);
-    },
-
-
-
-    GetPlaylists(){ 
-      
-      var tempScope = this;
-
-      
-      Object.prototype.toString.call(this.playlists);
-
-      this.playlists = (async () => {
-        const data = await GetPlaylists(); return data
-      })(); 
-
-
-      
-      console.log(this.playlists);
-
-      async function GetPlaylists(){
-        await fetchWebApi('v1/me/playlists?limit=1', 'GET').then((e) => {tempScope.totalPlaylists = e.total});
-
-        if(tempScope.totalPlaylists != null){
-          var _iterations = Math.floor(tempScope.totalPlaylists / 50);
-          var _lastIteration = tempScope.totalPlaylists % 50;
-
-          var templist = new Array;
-
-          for(var i = 0; i < _iterations; i++){
-            await fetchWebApi(`v1/me/playlists?limit=50&offset=${50 * i}`, 'GET').then((e) => {
-              e.items.forEach(e => {
-                templist.push(e)
-              });
-            });
-          }
-          await fetchWebApi(`v1/me/playlists?limit=${_lastIteration}&offset=${50 * _iterations}`, 'GET').then((e) => {
-            e.items.forEach(e => {
-              templist.push(e)
-            });
-          });
-                  }
-
-        return templist;
-      }
-    },
-
-
-
-
-
-
-
 
 
 
@@ -280,38 +238,74 @@ export default {
       <div id="drawer">
 
         <div id="drawerTopArea" class="levelOneContainer">
-
+          <div class="TopDrawerButton clickable" id="TopDrawerPlayer" @click="mode = 'player'" >
+            <h2 :class="{activeText: mode == 'player'}">Web Player</h2>
+          </div>
+          <div class="TopDrawerButton clickable" id="TopDrawerPlaylist" @click="mode = 'playlist'" >
+            <h2 :class="{activeText: mode == 'playlist'}">Playlist editor</h2>
+          </div>
         </div>
 
         <div id="drawerBottomArea" class="levelOneContainer">
-          <!-- 
-            nav
-            search
-            list
-          -->
+          <div v-for="list in playlists" class="playlists clickable" @click="currentPlaylist = list; CallApi( 'GET', list.tracks.href, null, 'getSongsFromCurrentPlaylist')">
+            <img :src="list.images[0].url">
+            <p>{{ list.name }}</p><small>{{ list.tracks.total }} songs</small>
+          </div>
         </div>
 
       </div>
 
+
+
+
+
+
+      <!-- main section -->
       <div id="interactionWindow">
         
         <div id="interactionNavigation">
           
-          
-          <div id="interactivePlayer" v-if="mode == 'player'">
+        </div>  
+        
+        <div id="interactivePlayer" v-if="mode == 'player'">
+          player
+        </div>
+
+
+        <div id="interactivePlaylistEditor" v-else>
+
+
+          <div id="PlaylistEditorPlaylistSelectWrapper" v-if="currentPlaylist == undefined">
 
           </div>
 
 
-          <div id="interactivePlaylistEditor" v-else>
+          <div id="PlaylistEditorViewerWrapper" v-else>
+
+            <div id="PlatlistEditorUpperSection">
+              <div id="PlaylistEditorSelectedPlaylistWrapper">
+                <img :src="currentPlaylist.images[0].url">
+                <p v-if="currentPlaylist.public">public playlist</p>
+                <p v-else>private playlist</p>
+                <h2>{{ currentPlaylist.name }}</h2>
+                <h4>by {{ currentPlaylist.owner.display_name }} • {{ currentPlaylist.tracks.total }} songs</h4>
+              </div>
+            </div>
+
+            <div id="PlatlistEditorSectionDevider"></div>
+
+            <div id="PlatlistEditorLowerSection">
+              <div v-for="songs in currentPlaylistSongs">
+                {{ songs.track.name }}
+              </div>
+            </div>
 
           </div>
 
         </div>
+        
 
-        <div id="interactionwindow">
 
-        </div>
 
         <div id="player">
 
@@ -341,7 +335,7 @@ export default {
 
             <div id="playerCenterBarTop">
               <div id="playerShuffle" >
-                <img v-if="player.shuffle_state" src="public/iconation/shuffle_active.png">
+                <img v-if="player.shuffle_state" src="iconation/shuffle_active.png">
                 <img v-else src="iconation/shuffle.png">
               </div>
               <img id="playerPrevious" src="iconation/rewind-button.png">
@@ -369,10 +363,16 @@ export default {
 
 
           <div id="playerRightBar">
-            <div id="playerLyrics"></div>
-            <div id="playerQue"></div>
-            <div id="playerDevices"></div>
-            <div id="playerVolume"></div>
+            <img id="playerQue" src="iconation/list.png">
+            <img id="playerDevices" src="iconation/deviced.png">
+            <div id="playerVolume">
+              <img v-if="player.device.volume_percent > 90" src="iconation/speaker-full.png">
+              <img v-else-if=" 0 < player.device.volume_percent" src="iconation/speaker-medium.png">
+              <img v-else src="iconation/speaker-muted.png">
+              <div id="volumeBar">
+                <div id="volumeBelowBar" :style="{'width': player.device.volume_percent + '%'}"></div>
+              </div>
+            </div>
           </div>
 
 
@@ -419,6 +419,10 @@ export default {
     cursor: pointer;
   }
 
+  .activeText{
+    color: var(--accentGreen);
+  }
+
   .unmarkable{
     -webkit-touch-callout: none; 
     -webkit-user-select: none;
@@ -426,6 +430,34 @@ export default {
     -moz-user-select: none;
     -ms-user-select: none; 
     user-select: none; 
+  }
+
+  .playlists{
+    padding: 10px;
+    padding-bottom: 5px;
+    width: 100%;
+    height: 64px;
+    position: relative;
+  }
+
+  .playlists img{
+    border-radius: 12px;
+    width: 64px;
+  }
+
+  .playlists p{
+    font-size: large;
+    margin: 0;
+    position: absolute;
+    top:21%;
+    left: 85px;
+  }
+
+  .playlists small{
+    font-size: 14px;
+    position: absolute;
+    top:52%;
+    left: 85px;
   }
 
   .playerButton{
@@ -439,14 +471,14 @@ export default {
 
   .levelOneContainer{
     position: relative;
-    background-color: rgba(0, 255, 255, 0.233);
+    background-color: var(--firstElementBackground);
     border-radius: 12px;
   }
 
   #drawer{
     width: 400px;
     height: 100vh;
-    background-color: rgba(255, 0, 0, 0.178);
+    background-color: var(--mainBackground);
     position: absolute;
     top: 0;
     left: 0;
@@ -460,11 +492,30 @@ export default {
     height: 140px;
   }
 
+  .TopDrawerButton{
+    margin-left: 30px;
+    position: absolute;
+  }
+
+  #TopDrawerPlayer{
+    top: 25px;
+  }
+
+  #TopDrawerPlaylist{
+    bottom: 25px;
+  }
+
+
+
+
+
   #drawerBottomArea{
     width: 100%;
     height: calc(100% - 160px);
 
     bottom: -20px;
+    overflow-y: scroll;
+    overflow-x: hidden;
   }
 
 
@@ -473,13 +524,104 @@ export default {
   #interactionWindow{
     width: calc(100% - 400px);
     height: 100vh;
-    background-color: rgba(51, 255, 0, 0.178);
+    background-color: var(--firstElementBackground);
     position: absolute;
     top: 0;
     right: 0;
     padding: 12px;
     box-sizing: border-box;
   }
+
+  #interactivePlaylistEditor{
+    height: 100%;
+  }
+
+  #PlatlistEditorUpperSection{
+    height: 400px;
+    width: 100%;
+    background-color: rgba(255, 0, 0, 0.158);
+    position: relative;
+    
+  }
+
+  #PlaylistEditorViewerWrapper{
+    width: 100%;
+    height: calc(100% - 110px - 400px);
+  }
+
+  #PlaylistEditorSelectedPlaylistWrapper{
+    height: 168px;
+    width: 100%;
+  }
+
+  #PlaylistEditorSelectedPlaylistWrapper img{
+    width: 128px;
+    height: 128px;
+    object-fit: cover;
+    border-radius: 12px;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+  }
+
+  #PlaylistEditorSelectedPlaylistWrapper p {
+    position: absolute;
+    left: 168px;
+    top: 20px;
+  }
+
+  #PlaylistEditorSelectedPlaylistWrapper h2 {
+    position: absolute;
+    left: 168px;
+    top: 60px;
+  }
+
+  #PlaylistEditorSelectedPlaylistWrapper h4{
+    position: absolute;
+    left: 168px;
+    top: 80px;
+    font-weight: 100;
+  }
+
+
+  #PlatlistEditorSectionDevider{
+    height: 2px;
+    background-color: rgba(255, 255, 255, 0.349);
+    width: 98%;
+    margin-left: 1%;
+  }
+
+  #PlatlistEditorLowerSection{
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 100%;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -524,6 +666,11 @@ export default {
 
   #playerPlaying p{
     line-height: 0%;
+  }
+  
+  #playerPlaying small{
+    line-height: 100%;
+    overflow: visible;
   }
 
   #playerArtist{
@@ -648,6 +795,9 @@ export default {
 
 
 
+
+
+
   #playerRightBar{
     position: absolute;
     width: 400px;
@@ -655,12 +805,46 @@ export default {
 
     top: 15px;
     right: 15px;
-
-    background-color: rgba(250, 235, 215, 0.26);
   }
 
 
+  #playerRightBar img{
+    width: 20px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
 
+  #volumeBar{
+    width: 120px;
+    height: 6px;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+
+
+    background-color: var(--secondElementBackground);
+    border-radius: 12px;
+  }
+
+  #volumeBelowBar{
+    background-color: var(--accentGreen);
+    height: 6px;
+    border-radius: 12px;
+  }
+
+  #playerVolume img{
+    right: 130px;
+  }
+
+  #playerDevices{
+    right: 165px;
+  }
+
+  #playerQue{
+    right: 200px;
+  }
 
 
 
