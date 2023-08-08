@@ -22,6 +22,7 @@ export default {
       currentPlaylist: undefined,
       currentPlaylistSongs: [],
 
+
       username: "",
       usermodel: {},
       user_img: "/test.png",
@@ -127,25 +128,29 @@ export default {
       } else if(instruction == "checkIfLiked"){
         this.isCurrentSongLiked = _data[0];
       } else if(instruction == "InitialPlaylistSync"){
-        const _length = _data.total;
 
-        var _iterations = Math.floor(_length / 50);
-        var _lastIteration = _length % 50;
+        if(playlistsRemaining == null){
+          playlistsRemaining = _data.total;
+        } else {
 
-        for(var i = 0; i < _iterations; i++){
-          this.CallApi( "GET", `https://api.spotify.com/v1/me/playlists?limit=50&offset=${50 * i}`, null, "PlaylistInitialAdd");
+          _data.items.forEach(e => {
+            if(e.images.length == 0){e.images.push("")}
+          });
+          this.playlists = this.playlists.concat(_data.items);
+
         }
-          
 
-        this.CallApi( "GET", `https://api.spotify.com/v1/me/playlists?limit=${_lastIteration}&offset=${50 * _iterations}`, null, "PlaylistInitialAdd");
-      } else if(instruction == "PlaylistInitialAdd"){
+        if(playlistsRemaining > 50){
+          this.CallApi( "GET", `https://api.spotify.com/v1/me/playlists?limit=50&offset=${50 * playlistsSyncIterations}`, null, "InitialPlaylistSync");
+          playlistsRemaining -= 50;
+        } else if(playlistsRemaining > 0){
+          this.CallApi( "GET", `https://api.spotify.com/v1/me/playlists?limit=${playlistsRemaining}&offset=${50 * playlistsSyncIterations}`, null, "InitialPlaylistSync");
+          playlistsRemaining = 0;
+        }
 
-        _data.items.forEach(e => {
-          if(e.images.length == 0){e.images.push("")}
-        });
-        this.playlists = this.playlists.concat(_data.items);
-        console.log(this.playlists);
+        playlistsSyncIterations++
 
+       
       } else if(instruction == "getSongsFromCurrentPlaylist"){
 
         this.currentPlaylistSongs = _data.items
@@ -235,7 +240,7 @@ export default {
       <!-- <div id="topbar">
 
       </div> -->
-      <div id="drawer">
+      <div id="drawer" class="unmarkable">
 
         <div id="drawerTopArea" class="levelOneContainer">
           <div class="TopDrawerButton clickable" id="TopDrawerPlayer" @click="mode = 'player'" >
@@ -261,14 +266,14 @@ export default {
 
 
       <!-- main section -->
-      <div id="interactionWindow">
+      <div id="interactionWindow" class="unmarkable">
         
         <div id="interactionNavigation">
           
         </div>  
         
         <div id="interactivePlayer" v-if="mode == 'player'">
-          player
+          player {{ playlists.length }}
         </div>
 
 
