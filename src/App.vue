@@ -197,7 +197,10 @@ export default {
           this.CallApi("DELETE", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _data);  
           _data = {"tracks": []};
         } 
-        _data.tracks.push({"uri": this.currentPlaylistSongs[i].track.uri});
+        if(!this.currentPlaylistSongs[i].track.uri.includes("spotify:local")){
+          _data.tracks.push({"uri": this.currentPlaylistSongs[i].track.uri});
+        }
+        
 
       }
       this.CallApi("DELETE", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _data);  
@@ -211,8 +214,9 @@ export default {
           this.CallApi("POST", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _addData);
           _addData = {"uris": []};
         }
-        _addData.uris.push(this.filteredPlaylist[i].track.uri);
-
+        if(!this.filteredPlaylist[i].track.uri.includes("spotify:local")){
+          _addData.uris.push(this.filteredPlaylist[i].track.uri);
+        }
       }
       this.CallApi("POST", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _addData, "updateCurrentPlaylist");   
     },
