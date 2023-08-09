@@ -1,8 +1,6 @@
 <script>
 import spotify_auth from './components/spotify_auth.vue';
 
-import {toRaw } from "vue";
-
 
 export default {
 
@@ -50,6 +48,10 @@ export default {
       currentSongDurationTime: "0:00",
       currentSongProgressTime: "0:00",
 
+
+      playlistFilterOptions: "",
+
+
     }
   },
   components: {
@@ -71,7 +73,7 @@ export default {
         xhr.open(method, url, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
-        xhr.send(body);
+        xhr.send(JSON.stringify(body));
         xhr.onload = function() {
           if (this.status == 200 ){
               var data = JSON.parse(this.responseText);
@@ -129,37 +131,36 @@ export default {
         this.isCurrentSongLiked = _data[0];
       } else if(instruction == "InitialPlaylistSync"){
 
-        if(playlistsRemaining == null){
-          playlistsRemaining = _data.total;
-        } else {
+        _data.items.forEach(e => {
+             if(e.images.length == 0){e.images.push("")}
+        });
+        this.playlists = this.playlists.concat(_data.items);
 
-          _data.items.forEach(e => {
-            if(e.images.length == 0){e.images.push("")}
-          });
-          this.playlists = this.playlists.concat(_data.items);
-
+        if(_data.next != null){
+          this.CallApi( "GET", _data.next, null, "InitialPlaylistSync");
         }
 
-        if(playlistsRemaining > 50){
-          this.CallApi( "GET", `https://api.spotify.com/v1/me/playlists?limit=50&offset=${50 * playlistsSyncIterations}`, null, "InitialPlaylistSync");
-          playlistsRemaining -= 50;
-        } else if(playlistsRemaining > 0){
-          this.CallApi( "GET", `https://api.spotify.com/v1/me/playlists?limit=${playlistsRemaining}&offset=${50 * playlistsSyncIterations}`, null, "InitialPlaylistSync");
-          playlistsRemaining = 0;
-        }
-
-        playlistsSyncIterations++
-
-       
       } else if(instruction == "getSongsFromCurrentPlaylist"){
-
-        this.currentPlaylistSongs = _data.items
+        if(playlistSelected){
+          this.currentPlaylistSongs = [];
+          playlistSelected = false;
+        }
+        this.currentPlaylistSongs = this.currentPlaylistSongs.concat(_data.items);
         console.log(_data);
+        if(_data.next != null){
+          this.CallApi( 'GET', _data.next, null, 'getSongsFromCurrentPlaylist')
+        } else {
+          playlistSelected = true;
+          this.playlists[this.playlists.findIndex(e => e.id == this.currentPlaylist.id)].tracks.total = this.currentPlaylistSongs.length;
+        }
+        console.log(_data);
+        //if _data.total 
 
+      } else if(instruction == "updateCurrentPlaylist"){
+        this.CallApi( 'GET', `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}`, null, 'getSongsFromCurrentPlaylist');
       }
     },
 
-//this.AddPlaylist()
 
 
 
@@ -172,7 +173,7 @@ export default {
 
       this.CallApi( "GET", "https://api.spotify.com/v1/me/", null, "initial");
       
-      this.CallApi( "GET", "https://api.spotify.com/v1/me/playlists?limit=1", null, "InitialPlaylistSync")
+      this.CallApi( "GET", "https://api.spotify.com/v1/me/playlists?limit=50", null, "InitialPlaylistSync");
 
       let interval = false;
       if(!interval){
@@ -181,13 +182,40 @@ export default {
         }, 1000);
         interval = true;
       }
-     
+
 
       console.log(access_token);
 
       this.window = 'main';
     },
 
+    SaveCurrentPlaylist(){
+      //remove all items from playlist
+      let _data = {"tracks": []};
+      for (let i = 0; i < this.currentPlaylistSongs.length; i++) {
+        if(i % 100 == 0 && i != 0){
+          this.CallApi("DELETE", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _data);  
+          _data = {"tracks": []};
+        } 
+        _data.tracks.push({"uri": this.currentPlaylistSongs[i].track.uri});
+
+      }
+      this.CallApi("DELETE", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _data);  
+
+
+
+      //add Songs
+      let _addData = {"uris": []};
+      for(let i = 0; i < this.filteredPlaylist.length; i++){
+        if(i % 100 == 0 && i != 0){
+          this.CallApi("POST", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _addData);
+          _addData = {"uris": []};
+        }
+        _addData.uris.push(this.filteredPlaylist[i].track.uri);
+
+      }
+      this.CallApi("POST", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _addData, "updateCurrentPlaylist");   
+    },
 
 
 
@@ -207,6 +235,83 @@ export default {
   computed: {
     player_Trackname(){
       return global_trackname;
+    },
+    SortedPlaylist(){
+      const temp = [...this.currentPlaylistSongs];
+
+      if(this.playlistFilterOptions == "length_a"){
+
+        temp.sort((a,b) => (a.track.duration_ms > b.track.duration_ms) ? 1 : ((b.track.duration_ms > a.track.duration_ms) ? -1 : 0));
+        return temp;
+
+      } else if(this.playlistFilterOptions == "length_d"){
+
+        temp.sort((b,a) => (a.track.duration_ms > b.track.duration_ms) ? 1 : ((b.track.duration_ms > a.track.duration_ms) ? -1 : 0));
+        return temp;
+
+      } else if(this.playlistFilterOptions == "release_a"){
+
+        temp.sort(function(a, b) {
+          const data_a = Date.parse(a.track.album.release_date);
+          const data_b = Date.parse(b.track.album.release_date);
+          
+          if( !isFinite(data_a) && !isFinite(data_b) ) {
+              return 0;
+          }
+          if( !isFinite(data_a) ) {
+              return 1;
+          }
+          if( !isFinite(data_b) ) {
+              return -1;
+          }
+          return data_a-data_b;
+        });
+        return temp;
+
+      } else if(this.playlistFilterOptions == "release_d"){
+
+        temp.sort(function(b, a) {
+          const data_a = Date.parse(a.track.album.release_date);
+          const data_b = Date.parse(b.track.album.release_date);
+          
+          if( !isFinite(data_a) && !isFinite(data_b) ) {
+              return 0;
+          }
+          if( !isFinite(data_a) ) {
+              return 1;
+          }
+          if( !isFinite(data_b) ) {
+              return -1;
+          }
+          return data_a-data_b;
+        });
+        return temp;
+
+      } else if(this.playlistFilterOptions == "random"){
+        temp.sort((a, b) => 0.5 - Math.random());
+        return temp;
+      } //else if(){
+        
+      // } else if(){
+        
+      // } else if(){
+        
+      // } else if(){
+        
+      // }
+      
+      
+      
+      else {
+        return this.currentPlaylistSongs;
+      }
+
+      
+    },
+    filteredPlaylist(){
+      const temp = [...this.SortedPlaylist];
+
+      return temp;
     }
   }
 
@@ -288,6 +393,7 @@ export default {
           <div id="PlaylistEditorViewerWrapper" v-else>
 
             <div id="PlatlistEditorUpperSection">
+
               <div id="PlaylistEditorSelectedPlaylistWrapper">
                 <img :src="currentPlaylist.images[0].url">
                 <p v-if="currentPlaylist.public">public playlist</p>
@@ -295,12 +401,46 @@ export default {
                 <h2>{{ currentPlaylist.name }}</h2>
                 <h4>by {{ currentPlaylist.owner.display_name }} • {{ currentPlaylist.tracks.total }} songs</h4>
               </div>
+
+              <div id="playlistEditorSortingMenu">
+                Sort by 
+                <br><br>
+                length: ascending<input type="radio" value="length_a" v-model="playlistFilterOptions"> 
+                descending<input type="radio" value="length_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                <br>
+                by Artist: ascending <input type="radio" value="artist_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                descending <input type="radio" value="artist_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                <br>
+                by Album: ascending <input type="radio" value="album_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                descending <input type="radio" value="album_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                <br>
+                by Name: ascending <input type="radio" value="name_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                descending <input type="radio" value="name_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                <br>
+                by Popularity: ascending <input type="radio" value="pop_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                descending <input type="radio" value="pop_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                <br>
+                by Release: old to new<input type="radio" value="release_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                new to old<input type="radio" value="release_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                <br>
+                random <input type="radio" value="random" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+
+
+
+                <!-- <br><br>  -->
+                none <input type="radio" value="" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+              </div>
+
+              <div id="playlistEditorButtons">
+                <button @click="SaveCurrentPlaylist()">save playlist</button>
+              </div>
+
             </div>
 
             <div id="PlatlistEditorSectionDevider"></div>
 
             <div id="PlatlistEditorLowerSection">
-              <div v-for="songs in currentPlaylistSongs">
+              <div v-for="songs in filteredPlaylist">
                 {{ songs.track.name }}
               </div>
             </div>

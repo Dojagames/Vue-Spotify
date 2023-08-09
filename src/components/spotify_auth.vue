@@ -111,7 +111,7 @@ export default {
         url += "&response_type=code";
         url += "&redirect_uri=" + redirect_uri;
         url += "&show_dialog=true";
-        url += "&scope=user-read-private user-read-email user-modify-playback-state user-read-playback-position user-library-read streaming user-read-playback-state user-read-recently-played playlist-read-private";
+        url += "&scope=user-read-private user-read-email user-modify-playback-state user-read-playback-position user-library-read streaming user-read-playback-state user-read-recently-played playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private" ;
         window.location.href = url; // Show Spotify's authorization screen
     },
 

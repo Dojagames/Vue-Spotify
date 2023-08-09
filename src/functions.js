@@ -11,5 +11,5 @@ function stringEscape(s) {
 var global_trackname = "test";
 
 
-let playlistsRemaining = null;
-let playlistsSyncIterations = 0;
+
+let playlistSelected = false;
