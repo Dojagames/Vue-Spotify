@@ -51,6 +51,11 @@ export default {
 
 
       playlistFilterOptions: "",
+
+      playlistFilters: {
+        duplicates: false,
+
+      }
     }
   },
   components: {
@@ -154,18 +159,18 @@ export default {
           playlistSelected = false;
         }
         this.currentPlaylistSongs = this.currentPlaylistSongs.concat(_data.items);
-        console.log(_data);
         if(_data.next != null){
           this.CallApi( 'GET', _data.next, null, 'getSongsFromCurrentPlaylist')
         } else {
+          console.log(this.currentPlaylistSongs);
           playlistSelected = true;
           this.playlists[this.playlists.findIndex(e => e.id == this.currentPlaylist.id)].tracks.total = this.currentPlaylistSongs.length;
         }
-        console.log(_data);
+
         //if _data.total 
 
       } else if(instruction == "updateCurrentPlaylist"){
-        this.CallApi( 'GET', `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}`, null, 'getSongsFromCurrentPlaylist');
+        this.CallApi( 'GET', `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, null, 'getSongsFromCurrentPlaylist');
       } else if(instruction == "createPlaylist"){
 
         _data.items.forEach(e => {
@@ -343,7 +348,17 @@ export default {
       
     },
     filteredPlaylist(){
-      const temp = [...this.SortedPlaylist];
+      let temp = [...this.SortedPlaylist];
+
+      if(this.playlistFilters.duplicates){
+        temp = temp.reduce((accumulator, current) => {
+        if (!accumulator.find((e) => e.track.id === current.track.id)) {
+          accumulator.push(current);
+        }
+        return accumulator;
+        }, []);
+      }
+
 
       return temp;
     }
@@ -471,6 +486,12 @@ export default {
 
                 <!-- <br><br>  -->
                 none <input type="radio" value="" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+              </div>
+
+              <div id="playlistEditorFilterMenu">
+                Filter by
+                duplicates: <input type="checkbox" v-model="playlistFilters.duplicates">
+                <br><br>
               </div>
 
               <div id="playlistEditorButtons" >
@@ -782,7 +803,10 @@ export default {
     left: 60px;
   }
 
-
+  #playlistEditorFilterMenu{
+    position: absolute;
+    right: 60px;
+  }
 
   #playlistEditorButtons{
     position: absolute;
