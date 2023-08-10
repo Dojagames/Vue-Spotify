@@ -13,3 +13,6 @@ var global_trackname = "test";
 
 
 let playlistSelected = false;
+
+let tempPlaylist = {name: "", descr: "", length: undefined, content: []};
+

@@ -22,6 +22,7 @@ export default {
 
 
       username: "",
+      user_id: "",
       usermodel: {},
       user_img: "/test.png",
 
@@ -50,8 +51,6 @@ export default {
 
 
       playlistFilterOptions: "",
-
-      editing: false,
     }
   },
   components: {
@@ -75,7 +74,7 @@ export default {
         xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
         xhr.send(JSON.stringify(body));
         xhr.onload = function() {
-          if (this.status == 200 ){
+          if (this.status == 200 || this.status == 201){
               var data = JSON.parse(this.responseText);
               currentScope.doSmtWithData(data, instruction);
           }
@@ -108,6 +107,7 @@ export default {
         this.usermodel = _data;
         this.username = _data.display_name.toString;
         this.user_img = _data.images[0].url;
+        this.user_id = _data.id;
 
       } else if(instruction == "playerState"){
         if(_data.is_playing == false) {
@@ -160,13 +160,26 @@ export default {
         } else {
           playlistSelected = true;
           this.playlists[this.playlists.findIndex(e => e.id == this.currentPlaylist.id)].tracks.total = this.currentPlaylistSongs.length;
-          this.editing = false;
         }
         console.log(_data);
         //if _data.total 
 
       } else if(instruction == "updateCurrentPlaylist"){
         this.CallApi( 'GET', `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}`, null, 'getSongsFromCurrentPlaylist');
+      } else if(instruction == "createPlaylist"){
+
+        _data.items.forEach(e => {
+          tempPlaylist.content.push(e.uri);
+        });
+
+        this.CallApi('POST', `https://api.spotify.com/v1/users/${this.user_id}/playlists`, { "name": tempPlaylist.name, "description": tempPlaylist.descr, "public": false}, "addSongstoNewPlaylist" );
+        console.log(tempPlaylist.content);
+      } else if(instruction == "addSongstoNewPlaylist"){
+        const tempList = {"uris": [...tempPlaylist.content], "position": 0};
+        this.CallApi('POST', `https://api.spotify.com/v1/playlists/${_data.id}/tracks`, tempList);
+
+        console.log(_data);
+        tempPlaylist = {name: "", descr: "", length: undefined, content: []};
       }
     },
 
@@ -200,7 +213,6 @@ export default {
 
     SaveCurrentPlaylist(){
       //remove all items from playlist
-      this.editing = true;
       let _data = {"tracks": []};
       for (let i = 0; i < this.currentPlaylistSongs.length; i++) {
         if(i % 100 == 0 && i != 0){
@@ -230,6 +242,13 @@ export default {
         }
       }
       this.CallApi("POST", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _addData, "updateCurrentPlaylist");
+    },
+
+    CreatePlaylist(_type, _descr, _length, _name){
+      tempPlaylist.name = _name;
+      tempPlaylist.descr = _descr;
+      tempPlaylist.length = _length;
+      this.CallApi("GET", `https://api.spotify.com/v1/me/top/tracks?limit=${(_length < 50)? _length : 50}&time_range=${_type}`, null, "createPlaylist" )
     },
 
 
@@ -369,10 +388,13 @@ export default {
           <div class="TopDrawerButton clickable" id="TopDrawerPlaylist" @click="mode = 'playlist'" >
             <h2 :class="{activeText: mode == 'playlist'}">Playlist editor</h2>
           </div>
+          <div class="TopDrawerButton clickable" id="TopDrawerCreate" @click="mode = 'create'" >
+            <h2 :class="{activeText: mode == 'create'}">Playlist creator</h2>
+          </div>
         </div>
 
         <div id="drawerBottomArea" class="levelOneContainer">
-          <div v-for="list in playlists" class="playlists clickable" @click=" if(!editing){currentPlaylist = list; CallApi( 'GET', list.tracks.href, null, 'getSongsFromCurrentPlaylist')}; ">
+          <div v-for="list in playlists" class="playlists clickable" @click=" currentPlaylist = list; CallApi( 'GET', list.tracks.href, null, 'getSongsFromCurrentPlaylist'); ">
             <img :src="list.images[0].url">
             <p>{{ list.name }}</p><small>{{ list.tracks.total }} songs</small>
           </div>
@@ -396,6 +418,11 @@ export default {
           player {{ playlists.length }}
         </div>
 
+        <div id="playlistCreator" v-else-if="mode == 'create'">
+          <button @click="CreatePlaylist('short_term','your top Songs from the last 30 Days', 50, 'top 30 days')">top 30 Days</button>
+          <button @click="CreatePlaylist('medium_term','your top Songs from the last 6Months', 50, 'top 6 months')">top 6 Months</button>
+          <button @click="CreatePlaylist('long_term','your top Songs ever', 50, 'all time favs')">top All time</button>
+        </div>
 
         <div id="interactivePlaylistEditor" v-else>
 
@@ -652,7 +679,7 @@ export default {
 
   #drawerTopArea{
     width: 100%;
-    height: 140px;
+    height: 190px;
   }
 
   .TopDrawerButton{
@@ -665,16 +692,20 @@ export default {
   }
 
   #TopDrawerPlaylist{
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  #TopDrawerCreate{
     bottom: 25px;
   }
 
 
 
 
-
   #drawerBottomArea{
     width: 100%;
-    height: calc(100% - 160px);
+    height: calc(100% - 200px);
 
     bottom: -20px;
     overflow-y: scroll;
