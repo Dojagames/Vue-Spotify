@@ -51,7 +51,7 @@ export default {
 
       playlistFilterOptions: "",
 
-
+      editing: false,
     }
   },
   components: {
@@ -86,8 +86,16 @@ export default {
                 console.log("player isnt playing");
               }
           }
-          else {
-              console.log(this.status);
+          else if(this.status == 502 || this.status == 500){
+            if(method == "DELETE") {alert("spotify server error while deletion please try again (some items could be duplicated or missing)")};
+            currentScope.CallApi(method, url, body, instruction);
+            console.log(this.responseURL);
+          } else if(this.status == 403){
+              if(this.responseText == "Index out of bounds."){
+                currentScope.CallApi(method, url, body, instruction); 
+              }
+          } else {
+            console.log(this.status);
           }
         };
     },
@@ -152,6 +160,7 @@ export default {
         } else {
           playlistSelected = true;
           this.playlists[this.playlists.findIndex(e => e.id == this.currentPlaylist.id)].tracks.total = this.currentPlaylistSongs.length;
+          this.editing = false;
         }
         console.log(_data);
         //if _data.total 
@@ -191,6 +200,7 @@ export default {
 
     SaveCurrentPlaylist(){
       //remove all items from playlist
+      this.editing = true;
       let _data = {"tracks": []};
       for (let i = 0; i < this.currentPlaylistSongs.length; i++) {
         if(i % 100 == 0 && i != 0){
@@ -199,26 +209,27 @@ export default {
         } 
         if(!this.currentPlaylistSongs[i].track.uri.includes("spotify:local")){
           _data.tracks.push({"uri": this.currentPlaylistSongs[i].track.uri});
-        }
-        
-
+        } 
       }
       this.CallApi("DELETE", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _data);  
 
 
 
       //add Songs
-      let _addData = {"uris": []};
+      let skipedSongs = 0;
+      let _addData = {"uris": [], "position": 0};
       for(let i = 0; i < this.filteredPlaylist.length; i++){
         if(i % 100 == 0 && i != 0){
           this.CallApi("POST", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _addData);
-          _addData = {"uris": []};
+          _addData = {"uris": [], "position": i - skipedSongs};
         }
         if(!this.filteredPlaylist[i].track.uri.includes("spotify:local")){
           _addData.uris.push(this.filteredPlaylist[i].track.uri);
+        } else {
+          skipedSongs++;
         }
       }
-      this.CallApi("POST", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _addData, "updateCurrentPlaylist");   
+      this.CallApi("POST", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _addData, "updateCurrentPlaylist");
     },
 
 
@@ -361,7 +372,7 @@ export default {
         </div>
 
         <div id="drawerBottomArea" class="levelOneContainer">
-          <div v-for="list in playlists" class="playlists clickable" @click="currentPlaylist = list; CallApi( 'GET', list.tracks.href, null, 'getSongsFromCurrentPlaylist')">
+          <div v-for="list in playlists" class="playlists clickable" @click=" if(!editing){currentPlaylist = list; CallApi( 'GET', list.tracks.href, null, 'getSongsFromCurrentPlaylist')}; ">
             <img :src="list.images[0].url">
             <p>{{ list.name }}</p><small>{{ list.tracks.total }} songs</small>
           </div>
@@ -435,8 +446,11 @@ export default {
                 none <input type="radio" value="" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
               </div>
 
-              <div id="playlistEditorButtons">
-                <button @click="SaveCurrentPlaylist()">save playlist</button>
+              <div id="playlistEditorButtons" >
+                <button class="playlistEditorButtonsBtns clickable">add Selection to other Playlist</button>
+                <button class="playlistEditorButtonsBtns clickable">delete Selection</button>
+                <button @click="SaveCurrentPlaylist()" class="clickable playlistEditorButtonsBtns">save Selection</button>
+                <button id="saveBtnPlaylistEditor" class="clickable playlistEditorButtonsBtns">save</button>
               </div>
 
             </div>
@@ -688,7 +702,7 @@ export default {
   #PlatlistEditorUpperSection{
     height: 400px;
     width: 100%;
-    background-color: rgba(255, 0, 0, 0.158);
+    /* background-color: rgba(255, 0, 0, 0.158); */
     position: relative;
     
   }
@@ -732,12 +746,49 @@ export default {
     font-weight: 100;
   }
 
+  #playlistEditorSortingMenu{
+    position: absolute;
+    left: 60px;
+  }
+
+
+
+  #playlistEditorButtons{
+    position: absolute;
+    right: 20px;
+    top: 340px;
+    width: 360px;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    /* background-color: rgba(255, 0, 0, 0.438); */
+  }
+
+  .playlistEditorButtonsBtns {
+    background-color: transparent;
+    border-radius: 4px;
+    outline: none;
+    border: 1px solid white;
+    margin: 2px;
+  }
+
+  #saveBtnPlaylistEditor{
+    width: 100%;
+    height: 20px;
+    background-color: var(--accentGreen);
+    color: #000000;
+    text-transform:uppercase;
+    letter-spacing: 1px;
+  }
+
 
   #PlatlistEditorSectionDevider{
     height: 2px;
     background-color: rgba(255, 255, 255, 0.349);
     width: 98%;
     margin-left: 1%;
+    margin-bottom: 15px;
   }
 
   #PlatlistEditorLowerSection{
