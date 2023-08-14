@@ -331,15 +331,31 @@ export default {
       } else if(this.playlistFilterOptions == "random"){
         temp.sort((a, b) => 0.5 - Math.random());
         return temp;
-      } //else if(){
-        
-      // } else if(){
-        
-      // } else if(){
-        
-      // } else if(){
-        
-      // }
+      } else if(this.playlistFilterOptions == "artist_a"){
+        temp.sort((a,b) => ((a.track.artists[0].name).toLowerCase() > (b.track.artists[0].name).toLowerCase()) ? 1 : (((b.track.artists[0].name).toLowerCase() > (a.track.artists[0].name).toLowerCase()) ? -1 : 0));
+        return temp;
+      } else if(this.playlistFilterOptions == "artist_d"){
+        temp.sort((b,a) => ((a.track.artists[0].name).toLowerCase() > (b.track.artists[0].name).toLowerCase()) ? 1 : (((b.track.artists[0].name).toLowerCase() > (a.track.artists[0].name).toLowerCase()) ? -1 : 0));
+        return temp;
+      } else if(this.playlistFilterOptions == "album_a"){
+        temp.sort((a,b) => ((a.track.album.name).toLowerCase() > (b.track.album.name).toLowerCase()) ? 1 : (((b.track.album.name).toLowerCase() > (a.track.album.name).toLowerCase()) ? -1 : 0));
+        return temp;
+      } else if(this.playlistFilterOptions == "album_d"){
+        temp.sort((b,a) => ((a.track.album.name).toLowerCase() > (b.track.album.name).toLowerCase()) ? 1 : (((b.track.album.name).toLowerCase() > (a.track.album.name).toLowerCase()) ? -1 : 0));
+        return temp;
+      } else if(this.playlistFilterOptions == "name_a"){
+        temp.sort((a,b) => ((a.track.name).toLowerCase() > (b.track.name).toLowerCase()) ? 1 : (((b.track.name).toLowerCase() > (a.track.name).toLowerCase()) ? -1 : 0));
+        return temp;
+      } else if(this.playlistFilterOptions == "name_d"){
+        temp.sort((b,a) => ((a.track.name).toLowerCase() > (b.track.name).toLowerCase()) ? 1 : (((b.track.name).toLowerCase() > (a.track.name).toLowerCase()) ? -1 : 0));
+        return temp;
+      } else if(this.playlistFilterOptions == "pop_a"){
+        temp.sort((a,b) => (a.track.popularity > b.track.popularity) ? 1 : ((b.track.popularity > a.track.popularity) ? -1 : 0));
+        return temp;
+      } else if(this.playlistFilterOptions == "pop_d"){
+        temp.sort((b,a) => (a.track.popularity > b.track.popularity) ? 1 : ((b.track.popularity > a.track.popularity) ? -1 : 0));
+        return temp;
+      }
       
       
       
@@ -404,7 +420,7 @@ export default {
             <h2 :class="{activeText: mode == 'playlist'}">Playlist editor</h2>
           </div>
           <div class="TopDrawerButton clickable" id="TopDrawerCreate" @click="mode = 'create'" >
-            <h2 :class="{activeText: mode == 'create'}">Playlist creator</h2>
+            <h2 :class="{activeText: mode == 'create'}">Utils</h2>
           </div>
         </div>
 
@@ -437,6 +453,9 @@ export default {
           <button @click="CreatePlaylist('short_term','your top Songs from the last 30 Days', 50, 'top 30 days')">top 30 Days</button>
           <button @click="CreatePlaylist('medium_term','your top Songs from the last 6Months', 50, 'top 6 months')">top 6 Months</button>
           <button @click="CreatePlaylist('long_term','your top Songs ever', 50, 'all time favs')">top All time</button>
+
+          <!-- list of created playlist -->
+          <!-- paste link to get image -->
         </div>
 
         <div id="interactivePlaylistEditor" v-else>
@@ -472,7 +491,7 @@ export default {
                 descending <input type="radio" value="album_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
                 <br>
                 by Name: ascending <input type="radio" value="name_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
-                descending <input type="radio" value="name_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                descending <input type="radio" value="name_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
                 <br>
                 by Popularity: ascending <input type="radio" value="pop_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
                 descending <input type="radio" value="pop_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
