@@ -12,6 +12,9 @@ var access_token = undefined;
 var refresh_token = undefined;
 
 
+let cP = {};
+
+
 // callApi( "GET", PLAYLISTS, null, handlePlaylistsResponse );
 
 

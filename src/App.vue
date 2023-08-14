@@ -217,6 +217,8 @@ export default {
     },
 
     SaveCurrentPlaylist(){
+      //cp = this.currentPlaylistSongs;
+
       //remove all items from playlist
       let _data = {"tracks": []};
       for (let i = 0; i < this.currentPlaylistSongs.length; i++) {
@@ -376,8 +378,6 @@ export default {
 
   <div id="loginWrapper" v-if="window === 'login' && !loggedIn">
 
-    <input type="text" v-model="id">
-    <input type="text" placeholder="secret" v-model="secret">
     <button class="clickable" @click="RequestAuthorization(id, secret)">Login</button>
 
   </div>
