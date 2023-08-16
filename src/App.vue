@@ -55,7 +55,9 @@ export default {
       playlistFilters: {
         duplicates: false,
 
-      }
+      },
+
+      inputLink: "",
     }
   },
   components: {
@@ -172,7 +174,6 @@ export default {
       } else if(instruction == "updateCurrentPlaylist"){
         this.CallApi( 'GET', `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, null, 'getSongsFromCurrentPlaylist');
       } else if(instruction == "createPlaylist"){
-
         _data.items.forEach(e => {
           tempPlaylist.content.push(e.uri);
         });
@@ -185,6 +186,9 @@ export default {
 
         console.log(_data);
         tempPlaylist = {name: "", descr: "", length: undefined, content: []};
+      } else if(instruction == "GetImage"){
+        window.open(_data.images[0].url, '_blank');
+        console.log(_data)
       }
     },
 
@@ -258,6 +262,26 @@ export default {
       this.CallApi("GET", `https://api.spotify.com/v1/me/top/tracks?limit=${(_length < 50)? _length : 50}&time_range=${_type}`, null, "createPlaylist" )
     },
 
+    GetImage(){
+      let shortedUrl = this.inputLink.split("?")[0];
+      let id;
+      let type;
+    
+      if(shortedUrl.includes(":")){
+        shortedUrl = shortedUrl.substring(8);
+        type = shortedUrl.split("/")[1];
+        id = shortedUrl.split("/")[2];
+      } else {
+        type = shortedUrl.split("/")[1];
+        id = shortedUrl.split("/")[2];
+      }
+
+      if(type == "album"){
+        this.CallApi("GET", `https://api.spotify.com/v1/albums/${id}`, null, "GetImage" )
+      } else if(type == "playlist"){
+        this.CallApi("GET", `https://api.spotify.com/v1/playlists/${id}`, null, "GetImage" )
+      }
+    },
 
 
   },
@@ -454,6 +478,9 @@ export default {
           <button @click="CreatePlaylist('medium_term','your top Songs from the last 6Months', 50, 'top 6 months')">top 6 Months</button>
           <button @click="CreatePlaylist('long_term','your top Songs ever', 50, 'all time favs')">top All time</button>
 
+
+          <input type="text" v-model="inputLink" style="background-color: transparent; width: 760px;">
+          <button @click="GetImage">Get Image</button>
           <!-- list of created playlist -->
           <!-- paste link to get image -->
         </div>
