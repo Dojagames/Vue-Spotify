@@ -54,6 +54,15 @@ export default {
 
       playlistFilters: {
         duplicates: false,
+        length: {
+          longer: "",
+          shorter: "",
+        },
+        release: {
+          before: "",
+          after: "",
+        }, 
+        genres: {},
 
       },
 
@@ -401,6 +410,13 @@ export default {
         }, []);
       }
 
+      if(this.playlistFilters.release.before != ""){
+        temp = temp.filter((e) => e.track.album.release_date <= this.playlistFilters.release.before)
+      }
+
+      if(this.playlistFilters.release.after != ""){
+        temp = temp.filter((e) => e.track.album.release_date >= this.playlistFilters.release.after)
+      }
 
       return temp;
     }
@@ -511,19 +527,19 @@ export default {
                 length: ascending<input type="radio" value="length_a" v-model="playlistFilterOptions"> 
                 descending<input type="radio" value="length_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
                 <br>
-                by Artist: ascending <input type="radio" value="artist_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                Artist: ascending <input type="radio" value="artist_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
                 descending <input type="radio" value="artist_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
                 <br>
-                by Album: ascending <input type="radio" value="album_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                Album: ascending <input type="radio" value="album_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
                 descending <input type="radio" value="album_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
                 <br>
-                by Name: ascending <input type="radio" value="name_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                Name: ascending <input type="radio" value="name_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
                 descending <input type="radio" value="name_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
                 <br>
-                by Popularity: ascending <input type="radio" value="pop_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                Popularity: ascending <input type="radio" value="pop_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
                 descending <input type="radio" value="pop_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
                 <br>
-                by Release: old to new<input type="radio" value="release_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
+                Release: old to new<input type="radio" value="release_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
                 new to old<input type="radio" value="release_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
                 <br>
                 random <input type="radio" value="random" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
@@ -535,9 +551,13 @@ export default {
               </div>
 
               <div id="playlistEditorFilterMenu">
-                Filter by
-                duplicates: <input type="checkbox" v-model="playlistFilters.duplicates">
+                Filter by 
                 <br><br>
+                duplicates: <input type="checkbox" v-model="playlistFilters.duplicates"><br>
+                release: after <input type="date" v-model="playlistFilters.release.after" style="background-color: transparent; border: none;"> before <input type="date" v-model="playlistFilters.release.before" style="background-color: transparent; border: none;"><br>
+                Genre<br>
+                length (in mm:ss): longer than <input type="text" v-model="playlistFilters.length.longer"> shorter then <input type="text" v-model="playlistFilters.length.shorter"><br>
+                
               </div>
 
               <div id="playlistEditorButtons" >
@@ -852,11 +872,13 @@ export default {
   #playlistEditorFilterMenu{
     position: absolute;
     right: 60px;
+    text-align: right;
   }
 
   #playlistEditorButtons{
     position: absolute;
-    right: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     top: 340px;
     width: 360px;
     height: 60px;
