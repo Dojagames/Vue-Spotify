@@ -292,6 +292,10 @@ export default {
       }
     },
 
+    AddToQue(_uri){
+      this.CallApi("POST", `https://api.spotify.com/v1/me/player/queue?uri=${_uri}`, null,);
+    }
+
 
   },
   created() {
@@ -582,7 +586,7 @@ export default {
               </div>
               <div style="margin-bottom: 40px;"></div>
               <div v-for="songs in filteredPlaylist" class="platlistEditorLowerSectionContainer">
-                <div class="platlistEditorLowerSectionContainerLine"> {{ songs.track.name }} </div>
+                <div class="platlistEditorLowerSectionContainerLine" style="cursor: pointer;" @click="AddToQue(songs.track.uri)"> {{ songs.track.name }} </div>
                 <div class="platlistEditorLowerSectionContainerLine"> {{ songs.track.album.name }} </div>
                 <div class="platlistEditorLowerSectionContainerLine"> {{ songs.track.artists[0].name }} </div>
                 <div class="platlistEditorLowerSectionContainerLine"> {{ songs.track.album.release_date }} </div>
