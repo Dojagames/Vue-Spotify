@@ -572,7 +572,7 @@ export default {
             <div id="PlatlistEditorSectionDevider"></div>
 
             <div id="PlatlistEditorLowerSection">
-              <div class="platlistEditorLowerSectionContainer" style="margin-bottom: 10px;">
+              <div class="platlistEditorLowerSectionContainer" style="padding-bottom: 15px; position: fixed; background: linear-gradient(180deg, var(--firstElementBackground) 40%, rgba(255, 0, 0, 0) 100%);">
                 <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Name <p v-if="playlistFilterOptions == 'name_a'" @click="playlistFilterOptions = 'name_d'">v</p><p v-else-if="playlistFilterOptions == 'name_d'" @click="playlistFilterOptions = ''">ʌ</p><p v-else @click="playlistFilterOptions = 'name_a'">-</p> </div>
                 <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Album <p v-if="playlistFilterOptions == 'album_a'" @click="playlistFilterOptions = 'album_d'">v</p><p v-else-if="playlistFilterOptions == 'album_d'" @click="playlistFilterOptions = ''">ʌ</p><p v-else @click="playlistFilterOptions = 'album_a'">-</p> </div>
                 <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Artist <p v-if="playlistFilterOptions == 'artist_a'" @click="playlistFilterOptions = 'artist_d'">v</p><p v-else-if="playlistFilterOptions == 'artist_d'" @click="playlistFilterOptions = ''">ʌ</p><p v-else @click="playlistFilterOptions = 'artist_a'">-</p> </div>
@@ -580,6 +580,7 @@ export default {
                 <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Length <p v-if="playlistFilterOptions == 'length_a'" @click="playlistFilterOptions = 'length_d'">v</p><p v-else-if="playlistFilterOptions == 'length_d'" @click="playlistFilterOptions = ''">ʌ</p><p v-else @click="playlistFilterOptions = 'length_a'">-</p> </div>
                 <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Popularity <p v-if="playlistFilterOptions == 'pop_a'" @click="playlistFilterOptions = 'pop_d'">v</p><p v-else-if="playlistFilterOptions == 'pop_d'" @click="playlistFilterOptions = ''">ʌ</p><p v-else @click="playlistFilterOptions = 'pop_a'">-</p> </div>
               </div>
+              <div style="margin-bottom: 40px;"></div>
               <div v-for="songs in filteredPlaylist" class="platlistEditorLowerSectionContainer">
                 <div class="platlistEditorLowerSectionContainerLine"> {{ songs.track.name }} </div>
                 <div class="platlistEditorLowerSectionContainerLine"> {{ songs.track.album.name }} </div>
@@ -941,9 +942,11 @@ export default {
   }
 
   .platlistEditorLowerSectionContainerLine{
-    width: 380px;
+    width: 340px;
+    margin-right: 10px;
     overflow: hidden;
-    margin: 3px 0 3px 0;
+    white-space: nowrap;
+    margin: 0px 0 6px 0;
   }
 
   .platlistEditorLowerSectionContainerLine p {
