@@ -69,6 +69,10 @@ export default {
       saveUri: false,
 
       inputLink: "",
+
+      currentFavId: "",
+      currentFavType: "",
+      currentFavList: {"tracks": []},
     }
   },
   components: {
@@ -192,6 +196,13 @@ export default {
         this.CallApi('POST', `https://api.spotify.com/v1/users/${this.user_id}/playlists`, { "name": tempPlaylist.name, "description": tempPlaylist.descr, "public": false}, "addSongstoNewPlaylist" );
         console.log(tempPlaylist.content);
       } else if(instruction == "addSongstoNewPlaylist"){
+        if(_data.name == "top 30 days"){
+          localStorage.setItem(`short_term+${this.user_id}`, _data.id);
+        } else if (_data.name == "top 6 months"){
+          localStorage.setItem(`medium_term+${this.user_id}`, _data.id);
+        } else if(_data.name == "all time favs"){
+          localStorage.setItem(`long_term+${this.user_id}`, _data.id);
+        }
         const tempList = {"uris": [...tempPlaylist.content], "position": 0};
         this.CallApi('POST', `https://api.spotify.com/v1/playlists/${_data.id}/tracks`, tempList);
 
@@ -200,6 +211,30 @@ export default {
       } else if(instruction == "GetImage"){
         window.open(_data.images[0].url, '_blank');
         console.log(_data)
+      } else if(instruction == "refreshTopSongList"){
+        console.log(_data);
+        _data.items.forEach(e => {
+          if(!e.track.uri.includes("spotify:local"))
+          this.currentFavList.tracks.push({"uri": e.track.uri});
+        });
+        if(_data.next != null){
+          this.CallApi( 'GET', _data.next, null, 'refreshTopSongList');
+        } else {
+          this.CallApi("DELETE", `https://api.spotify.com/v1/playlists/${this.currentFavId}/tracks`, this.currentFavList);
+          
+          this.currentFavList = {"tracks": []};
+
+          this.CallApi("GET", `https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=${this.currentFavType}`, null, "updateTopSongList" )
+
+        }
+        //
+      } else if(instruction == "updateTopSongList"){
+        let _addData = {"uris": [], "position": 0};
+        console.log(_data);
+        _data.items.forEach((e) => {
+          _addData.uris.push(e.uri);
+        });
+        this.CallApi("POST", `https://api.spotify.com/v1/playlists/${this.currentFavId}/tracks`, _addData);
       }
     },
 
@@ -267,15 +302,22 @@ export default {
     },
 
     CreatePlaylist(_type, _descr, _length, _name){
-      let tempUri = localStorage.getItem(tempUri);
-      if(tempUri.hasOwnProperty('_type')){
-        alert(tempUri._type);
+      let tempUri = localStorage.getItem(`${_type}+${this.user_id}`);
+
+      if(tempUri != null && this.saveUri == false){
+        this.currentFavId = tempUri;
+        this.currentFavType = _type;
+        this.CallApi( 'GET', `https://api.spotify.com/v1/playlists/${tempUri}/tracks`, null, 'refreshTopSongList');
+      } else {
+        tempPlaylist.name = _name;
+        tempPlaylist.descr = _descr;
+        tempPlaylist.length = _length;
+        this.CallApi("GET", `https://api.spotify.com/v1/me/top/tracks?limit=${(_length < 50)? _length : 50}&time_range=${_type}`, null, "createPlaylist" )
       }
+       
       
-      tempPlaylist.name = _name;
-      tempPlaylist.descr = _descr;
-      tempPlaylist.length = _length;
-      this.CallApi("GET", `https://api.spotify.com/v1/me/top/tracks?limit=${(_length < 50)? _length : 50}&time_range=${_type}`, null, "createPlaylist" )
+
+      
     },
 
     GetImage(){
@@ -516,7 +558,7 @@ export default {
           <button @click="CreatePlaylist('short_term','your top Songs from the last 30 Days', 50, 'top 30 days')">top 30 Days</button>
           <button @click="CreatePlaylist('medium_term','your top Songs from the last 6Months', 50, 'top 6 months')">top 6 Months</button>
           <button @click="CreatePlaylist('long_term','your top Songs ever', 50, 'all time favs')">top All time</button><br>
-          <input type="checkbox" v-model="saveUri"> keep playlist uri saved <br><br><br>
+          <input type="checkbox" v-model="saveUri"> create new Playlist<br><br><br>
 
 
           <input type="text" v-model="inputLink" style="background-color: transparent; width: 760px;">
