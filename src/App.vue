@@ -66,6 +66,8 @@ export default {
 
       },
 
+      saveUri: false,
+
       inputLink: "",
     }
   },
@@ -265,6 +267,11 @@ export default {
     },
 
     CreatePlaylist(_type, _descr, _length, _name){
+      let tempUri = localStorage.getItem(tempUri);
+      if(tempUri.hasOwnProperty('_type')){
+        alert(tempUri._type);
+      }
+      
       tempPlaylist.name = _name;
       tempPlaylist.descr = _descr;
       tempPlaylist.length = _length;
@@ -313,6 +320,18 @@ export default {
   computed: {
     player_Trackname(){
       return global_trackname;
+    },
+    own_playlists(){
+      let _tempList = this.playlists;
+      _tempList = _tempList.filter((e) => e.owner.id == this.user_id);
+      return _tempList;
+    },
+    player_Img(){
+      if(this.player.item.album.images.length == 0) {
+        return '';
+      } else {
+        return this.player.item.album.images[1].url
+      }
     },
     SortedPlaylist(){
       const temp = [...this.currentPlaylistSongs];
@@ -469,7 +488,7 @@ export default {
         </div>
 
         <div id="drawerBottomArea" class="levelOneContainer">
-          <div v-for="list in playlists" class="playlists clickable" @click=" currentPlaylist = list; CallApi( 'GET', list.tracks.href, null, 'getSongsFromCurrentPlaylist'); ">
+          <div v-for="list in own_playlists" class="playlists clickable" @click=" currentPlaylist = list; CallApi( 'GET', list.tracks.href, null, 'getSongsFromCurrentPlaylist'); ">
             <img :src="list.images[0].url">
             <p>{{ list.name }}</p><small>{{ list.tracks.total }} songs</small>
           </div>
@@ -496,7 +515,8 @@ export default {
         <div id="playlistCreator" v-else-if="mode == 'create'">
           <button @click="CreatePlaylist('short_term','your top Songs from the last 30 Days', 50, 'top 30 days')">top 30 Days</button>
           <button @click="CreatePlaylist('medium_term','your top Songs from the last 6Months', 50, 'top 6 months')">top 6 Months</button>
-          <button @click="CreatePlaylist('long_term','your top Songs ever', 50, 'all time favs')">top All time</button>
+          <button @click="CreatePlaylist('long_term','your top Songs ever', 50, 'all time favs')">top All time</button><br>
+          <input type="checkbox" v-model="saveUri"> keep playlist uri saved <br><br><br>
 
 
           <input type="text" v-model="inputLink" style="background-color: transparent; width: 760px;">
@@ -577,12 +597,12 @@ export default {
 
             <div id="PlatlistEditorLowerSection">
               <div class="platlistEditorLowerSectionContainer" style="padding-bottom: 15px; position: fixed; background: linear-gradient(180deg, var(--firstElementBackground) 40%, rgba(255, 0, 0, 0) 100%);">
-                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Name <p v-if="playlistFilterOptions == 'name_a'" @click="playlistFilterOptions = 'name_d'">v</p><p v-else-if="playlistFilterOptions == 'name_d'" @click="playlistFilterOptions = ''">ʌ</p><p v-else @click="playlistFilterOptions = 'name_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Album <p v-if="playlistFilterOptions == 'album_a'" @click="playlistFilterOptions = 'album_d'">v</p><p v-else-if="playlistFilterOptions == 'album_d'" @click="playlistFilterOptions = ''">ʌ</p><p v-else @click="playlistFilterOptions = 'album_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Artist <p v-if="playlistFilterOptions == 'artist_a'" @click="playlistFilterOptions = 'artist_d'">v</p><p v-else-if="playlistFilterOptions == 'artist_d'" @click="playlistFilterOptions = ''">ʌ</p><p v-else @click="playlistFilterOptions = 'artist_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Release Date <p v-if="playlistFilterOptions == 'release_a'" @click="playlistFilterOptions = 'release_d'">v</p><p v-else-if="playlistFilterOptions == 'release_d'" @click="playlistFilterOptions = ''">ʌ</p><p v-else @click="playlistFilterOptions = 'release_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Length <p v-if="playlistFilterOptions == 'length_a'" @click="playlistFilterOptions = 'length_d'">v</p><p v-else-if="playlistFilterOptions == 'length_d'" @click="playlistFilterOptions = ''">ʌ</p><p v-else @click="playlistFilterOptions = 'length_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Popularity <p v-if="playlistFilterOptions == 'pop_a'" @click="playlistFilterOptions = 'pop_d'">v</p><p v-else-if="playlistFilterOptions == 'pop_d'" @click="playlistFilterOptions = ''">ʌ</p><p v-else @click="playlistFilterOptions = 'pop_a'">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Name <p v-if="playlistFilterOptions == 'name_a'" @click="playlistFilterOptions = 'name_d'">▲</p><p v-else-if="playlistFilterOptions == 'name_d'" @click="playlistFilterOptions = ''">▼</p><p v-else @click="playlistFilterOptions = 'name_a'">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Album <p v-if="playlistFilterOptions == 'album_a'" @click="playlistFilterOptions = 'album_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'album_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'album_a'">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Artist <p v-if="playlistFilterOptions == 'artist_a'" @click="playlistFilterOptions = 'artist_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'artist_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'artist_a'">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Release Date <p v-if="playlistFilterOptions == 'release_a'" @click="playlistFilterOptions = 'release_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'release_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'release_a'">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Length <p v-if="playlistFilterOptions == 'length_a'" @click="playlistFilterOptions = 'length_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'length_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'length_a'">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Popularity <p v-if="playlistFilterOptions == 'pop_a'" @click="playlistFilterOptions = 'pop_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'pop_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'pop_a'">-</p> </div>
               </div>
               <div style="margin-bottom: 40px;"></div>
               <div v-for="songs in filteredPlaylist" class="platlistEditorLowerSectionContainer">
@@ -606,7 +626,7 @@ export default {
 
 
           <div id="playerLeftBar">
-            <img id="playerImg" v-bind:src="this.player.item.album.images[1].url" class="unmarkable">
+            <img id="playerImg" v-bind:src="player_Img" class="unmarkable">
 
               <div id="playerPlaying" >
                 <p class="unmarkable">{{ this.player.item.name }}</p>
@@ -738,6 +758,8 @@ export default {
   .playlists img{
     border-radius: 12px;
     width: 64px;
+    object-fit: cover;
+    height: 64px;
   }
 
   .playlists p{
