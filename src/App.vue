@@ -530,9 +530,6 @@ export default {
       <div id="drawer" class="unmarkable">
 
         <div id="drawerTopArea" class="levelOneContainer">
-          <div class="TopDrawerButton clickable" id="TopDrawerPlayer" @click="mode = 'player'" >
-            <h2 :class="{activeText: mode == 'player'}">Web Player</h2>
-          </div>
           <div class="TopDrawerButton clickable" id="TopDrawerPlaylist" @click="mode = 'playlist'" >
             <h2 :class="{activeText: mode == 'playlist'}">Playlist editor</h2>
           </div>
@@ -562,11 +559,8 @@ export default {
           
         </div>  
         
-        <div id="interactivePlayer" v-if="mode == 'player'">
-          player {{ playlists.length }}
-        </div>
 
-        <div id="playlistCreator" v-else-if="mode == 'create'">
+        <div id="playlistCreator" v-if="mode == 'create'">
           <button @click="CreatePlaylist('short_term','your top Songs from the last 30 Days', 50, 'top 30 days')">top 30 Days</button>
           <button @click="CreatePlaylist('medium_term','your top Songs from the last 6Months', 50, 'top 6 months')">top 6 Months</button>
           <button @click="CreatePlaylist('long_term','your top Songs ever', 50, 'all time favs')">top All time</button><br>
@@ -860,7 +854,7 @@ export default {
 
   #drawerTopArea{
     width: 100%;
-    height: 190px;
+    height: 110px;
   }
 
   .TopDrawerButton{
@@ -868,17 +862,13 @@ export default {
     position: absolute;
   }
 
-  #TopDrawerPlayer{
-    top: 25px;
-  }
 
   #TopDrawerPlaylist{
-    top: 50%;
-    transform: translateY(-50%);
+    top: 17px;
   }
 
   #TopDrawerCreate{
-    bottom: 25px;
+    bottom: 17px;
   }
 
 
@@ -886,7 +876,7 @@ export default {
 
   #drawerBottomArea{
     width: 100%;
-    height: calc(100% - 200px);
+    height: calc(100% - 118px);
 
     bottom: -20px;
     overflow-y: scroll;
