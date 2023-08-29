@@ -303,12 +303,24 @@ export default {
 
     CreatePlaylist(_type, _descr, _length, _name){
       let tempUri = localStorage.getItem(`${_type}+${this.user_id}`);
-
       if(tempUri != null && this.saveUri == false){
         this.currentFavId = tempUri;
         this.currentFavType = _type;
         this.CallApi( 'GET', `https://api.spotify.com/v1/playlists/${tempUri}/tracks`, null, 'refreshTopSongList');
-      } else {
+      } else if(this.own_playlists.filter(e => e.name == _name)[0].name == _name && this.saveUri == false){
+        this.currentFavId = this.own_playlists.filter(e => e.name == _name)[0].id;
+        this.currentFavType = _type;
+
+        if(_name == "top 30 days"){
+          localStorage.setItem(`short_term+${this.user_id}`, this.currentFavId);
+        } else if (_name == "top 6 months"){
+          localStorage.setItem(`medium_term+${this.user_id}`,this.currentFavId);
+        } else if(_name == "all time favs"){
+          localStorage.setItem(`long_term+${this.user_id}`, this.currentFavId);
+        }
+
+        this.CallApi( 'GET', `https://api.spotify.com/v1/playlists/${this.currentFavId}/tracks`, null, 'refreshTopSongList');
+      } else{
         tempPlaylist.name = _name;
         tempPlaylist.descr = _descr;
         tempPlaylist.length = _length;
@@ -691,20 +703,20 @@ export default {
           <div id="playerCenterBar" class="unmarkable">
 
             <div id="playerCenterBarTop">
-              <div id="playerShuffle" >
-                <img v-if="player.shuffle_state" src="iconation/shuffle_active.png">
-                <img v-else src="iconation/shuffle.png">
+              <div id="playerShuffle" class="playerButton">
+                <img v-if="player.shuffle_state" src="iconation/shuffle_active.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/shuffle?state=false', null )">
+                <img v-else src="iconation/shuffle.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/shuffle?state=true', null )">
               </div>
-              <img id="playerPrevious" src="iconation/rewind-button.png">
-              <div id="playerPlay">
-                <img v-if="player.is_playing" src="iconation/pause.png">
-                <img v-else src="iconation/play-button.png">
+              <img id="playerPrevious" src="iconation/rewind-button.png" class="playerButton" @click="CallApi('POST', 'https://api.spotify.com/v1/me/player/previous', null )">
+              <div id="playerPlay" class="playerButton">
+                <img v-if="player.is_playing" src="iconation/pause.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/pause', null )">
+                <img v-else src="iconation/play-button.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/play', {} )">
               </div>
-              <img id="playerNext" src="iconation/skip.png">
-              <div id="playerLoop">
-                <img v-if="player.repeat_state == 'track'" src="iconation/RepeatOnce.png">
-                <img v-else-if="player.repeat_state == 'context'" src="iconation/repeat_active.png">
-                <img v-else src="iconation/repeat.png">
+              <img id="playerNext" src="iconation/skip.png" class="playerButton" @click="CallApi('POST', 'https://api.spotify.com/v1/me/player/next', null )">
+              <div id="playerLoop" class="playerButton">
+                <img v-if="player.repeat_state == 'track'" src="iconation/RepeatOnce.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/repeat?state=off', null )">
+                <img v-else-if="player.repeat_state == 'context'" src="iconation/repeat_active.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/repeat?state=track', null )">
+                <img v-else src="iconation/repeat.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/repeat?state=context', null )">
               </div>
             </div>
 
@@ -820,7 +832,7 @@ export default {
   }
 
   .playerButton{
-    opacity: 0.9;
+    opacity: 0.75;
   }
 
   .playerButton:hover{
