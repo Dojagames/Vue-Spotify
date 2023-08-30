@@ -11,6 +11,7 @@ export default {
       secret: '61095338f0164dc98b728d7c930fe50e',
 
       mode: "playlist",
+      previous_mode: "",
 
 
       playlists: [
@@ -236,6 +237,8 @@ export default {
           _addData.uris.push(e.uri);
         });
         this.CallApi("POST", `https://api.spotify.com/v1/playlists/${this.currentFavId}/tracks`, _addData);
+      } else if(instruction == "getQue"){
+        console.log(_data);
       }
     },
 
@@ -356,7 +359,11 @@ export default {
 
     AddToQue(_uri){
       this.CallApi("POST", `https://api.spotify.com/v1/me/player/queue?uri=${_uri}`, null,);
-    }
+    },
+
+    GetQue(){
+      this.CallApi("GET", `https://api.spotify.com/v1/me/player/queue`, null, "getQue");
+    },
 
 
   },
@@ -566,12 +573,12 @@ export default {
       <!-- main section -->
       <div id="interactionWindow" class="unmarkable">
         
-        <div id="interactionNavigation">
-          
-        </div>  
+  
+        <div id="que" v-if="mode == 'que'">
         
+        </div>
 
-        <div id="playlistCreator" v-if="mode == 'create'">
+        <div id="playlistCreator" v-else-if="mode == 'create'">
           <button @click="CreatePlaylist('short_term','your top Songs from the last 30 Days', 50, 'top 30 days')">top 30 Days</button>
           <button @click="CreatePlaylist('medium_term','your top Songs from the last 6Months', 50, 'top 6 months')">top 6 Months</button>
           <button @click="CreatePlaylist('long_term','your top Songs ever', 50, 'all time favs')">top All time</button><br>
@@ -711,7 +718,8 @@ export default {
 
 
           <div id="playerRightBar">
-            <img id="playerQue" src="iconation/list.png">
+            <img id="playerQue" src="iconation/activeList.png" v-if="mode == 'que'" @click="mode = previous_mode">
+            <img id="playerQue" src="iconation/list.png" v-else @click="previous_mode = mode; mode = 'que'; GetQue()">
             <img id="playerDevices" src="iconation/deviced.png">
             <div id="playerVolume">
               <img v-if="player.device.volume_percent > 90" src="iconation/speaker-full.png">
@@ -801,6 +809,8 @@ export default {
     position: absolute;
     top:21%;
     left: 85px;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   .playlists small{
