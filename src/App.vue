@@ -364,8 +364,13 @@ export default {
       
   },
   mounted(){
-    // const _tempLogin = GetLoginStatus();
-    // this.loggedIn = _tempLogin;
+    let warning = localStorage.getItem("warning");
+    if(!warning){
+      if(confirm(("warning, use this app at own risk, it can happen, that while rearanging a playlist, there can be songs missing or songs can be duplicated. always double check if the playlist ended up the right way. after leaving or reloading the page, playlists cant be restored, maybe there will be a feature added to reroll your playlists to a previous version. Be espacially cautios with local songs, there is no way to handle local songs with the api, so try to avoid playlists with local songs in them. \n \n this app is work in progress, use at own risk \n \n by pressing okay you wont get this promt again" ))){
+        localStorage.setItem("warning", true);
+      }
+    }
+
 
 
   },
