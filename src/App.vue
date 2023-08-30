@@ -47,6 +47,7 @@ export default {
       currentSongId: "",
 
       currentSongProgress: 0,
+      SongProgressMs: 0,
       currentSongDurationTime: "0:00",
       currentSongProgressTime: "0:00",
 
@@ -75,6 +76,8 @@ export default {
       currentFavId: "",
       currentFavType: "",
       currentFavList: {"tracks": []},
+      volumeClickWidth: 0,
+      progressClickWidth: 0,
     }
   },
   components: {
@@ -149,7 +152,7 @@ export default {
         
 
         this.player = _data;
-
+        this.SongProgressMs = _data.item.duration_ms;
         this.currentSongProgress = _data.progress_ms / _data.item.duration_ms * 100;
 
         
@@ -378,6 +381,32 @@ export default {
       }
     }
 
+    document.addEventListener("mousedown", (event) => {
+        const target = event.target;
+
+        if(target.id == "volumeBelowBar" || target.id == "volumeBar" ){
+          let rect;
+          if(target.id == "volumeBelowBar"){
+            rect = target.parentElement.getBoundingClientRect();
+          } else {
+            rect = target.getBoundingClientRect();
+          }
+          this.volumeClickWidth = Math.round(((event.clientX - rect.left) / rect.width * 100) / 5) * 5;
+          this.CallApi("PUT", `https://api.spotify.com/v1/me/player/volume?volume_percent=${this.volumeClickWidth}`, null);
+        } 
+        else if(target.id == "playerProgress" || target.id == "playerProgressCurrent"){
+          let rect;
+          if(target.id == "playerProgressCurrent"){
+            rect = target.parentElement.getBoundingClientRect();
+          } else {
+            rect = target.getBoundingClientRect();
+          }
+          const _progressClickWidth = Math.round((event.clientX - rect.left) / rect.width * this.SongProgressMs);
+          this.CallApi("PUT", `https://api.spotify.com/v1/me/player/seek?position_ms=${_progressClickWidth}`, null);
+
+        }
+       
+      });
 
 
   },
