@@ -10,7 +10,7 @@ export default {
       id: "934b2170ecfb4f34af81a0d0b159d851",
       secret: '61095338f0164dc98b728d7c930fe50e',
 
-      mode: "player",
+      mode: "playlist",
 
 
       playlists: [
@@ -51,6 +51,7 @@ export default {
 
 
       playlistFilterOptions: "",
+      playlistSortedRandom: false,
 
       playlistFilters: {
         duplicates: false,
@@ -369,7 +370,11 @@ export default {
 
   },
   watch: {
- 
+    playlistFilterOptions(){
+      if(this.playlistFilterOptions != "random" && this.playlistSortedRandom){
+        this.playlistSortedRandom = false;
+      }
+    }
   },
   computed: {
     player_Trackname(){
@@ -388,6 +393,7 @@ export default {
       }
     },
     SortedPlaylist(){
+
       const temp = [...this.currentPlaylistSongs];
 
       if(this.playlistFilterOptions == "length_a"){
@@ -593,34 +599,7 @@ export default {
                 <h4>by {{ currentPlaylist.owner.display_name }} • {{ currentPlaylist.tracks.total }} songs</h4>
               </div>
 
-              <div id="playlistEditorSortingMenu">
-                Sort by 
-                <br><br>
-                length: ascending<input type="radio" value="length_a" v-model="playlistFilterOptions"> 
-                descending<input type="radio" value="length_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
-                <br>
-                Artist: ascending <input type="radio" value="artist_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
-                descending <input type="radio" value="artist_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
-                <br>
-                Album: ascending <input type="radio" value="album_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
-                descending <input type="radio" value="album_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
-                <br>
-                Name: ascending <input type="radio" value="name_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
-                descending <input type="radio" value="name_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
-                <br>
-                Popularity: ascending <input type="radio" value="pop_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
-                descending <input type="radio" value="pop_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
-                <br>
-                Release: old to new<input type="radio" value="release_a" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
-                new to old<input type="radio" value="release_d" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
-                <br>
-                random <input type="radio" value="random" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
-
-
-
-                <!-- <br><br>  -->
-                none <input type="radio" value="" v-model="playlistFilterOptions" class="PlaylistEditSortingBox">
-              </div>
+          
 
               <div id="playlistEditorFilterMenu">
                 Filter by 
@@ -645,21 +624,22 @@ export default {
 
             <div id="PlatlistEditorLowerSection">
               <div class="platlistEditorLowerSectionContainer" style="padding-bottom: 15px; position: fixed; background: linear-gradient(180deg, var(--firstElementBackground) 40%, rgba(255, 0, 0, 0) 100%);">
-                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Name <p v-if="playlistFilterOptions == 'name_a'" @click="playlistFilterOptions = 'name_d'">▲</p><p v-else-if="playlistFilterOptions == 'name_d'" @click="playlistFilterOptions = ''">▼</p><p v-else @click="playlistFilterOptions = 'name_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Album <p v-if="playlistFilterOptions == 'album_a'" @click="playlistFilterOptions = 'album_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'album_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'album_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Artist <p v-if="playlistFilterOptions == 'artist_a'" @click="playlistFilterOptions = 'artist_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'artist_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'artist_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Release Date <p v-if="playlistFilterOptions == 'release_a'" @click="playlistFilterOptions = 'release_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'release_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'release_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Length <p v-if="playlistFilterOptions == 'length_a'" @click="playlistFilterOptions = 'length_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'length_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'length_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine" style="color: var(--accentGreen); font-weight: bold;">Popularity <p v-if="playlistFilterOptions == 'pop_a'" @click="playlistFilterOptions = 'pop_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'pop_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'pop_a'">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineLong" style="color: var(--accentGreen); font-weight: bold;">Name <p v-if="playlistFilterOptions == 'name_a'" @click="playlistFilterOptions = 'name_d'">▲</p><p v-else-if="playlistFilterOptions == 'name_d'" @click="playlistFilterOptions = ''">▼</p><p v-else @click="playlistFilterOptions = 'name_a'">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineLong" style="color: var(--accentGreen); font-weight: bold;">Album <p v-if="playlistFilterOptions == 'album_a'" @click="playlistFilterOptions = 'album_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'album_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'album_a'">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineLong" style="color: var(--accentGreen); font-weight: bold;">Artist <p v-if="playlistFilterOptions == 'artist_a'" @click="playlistFilterOptions = 'artist_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'artist_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'artist_a'">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineMedium" style="color: var(--accentGreen); font-weight: bold;">Release Date <p v-if="playlistFilterOptions == 'release_a'" @click="playlistFilterOptions = 'release_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'release_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'release_a'">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineShort" style="color: var(--accentGreen); font-weight: bold;">Length <p v-if="playlistFilterOptions == 'length_a'" @click="playlistFilterOptions = 'length_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'length_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'length_a'">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineShort" style="color: var(--accentGreen); font-weight: bold;">Popularity <p v-if="playlistFilterOptions == 'pop_a'" @click="playlistFilterOptions = 'pop_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'pop_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'pop_a'">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineShort" style="color: var(--accentGreen); font-weight: bold;">Random <input type="checkbox"  v-model="playlistSortedRandom" class="PlaylistEditSortingBox" @change="playlistSortedRandom ? playlistFilterOptions = 'random' : playlistFilterOptions = ''"></div>
               </div>
               <div style="margin-bottom: 40px;"></div>
               <div v-for="songs in filteredPlaylist" class="platlistEditorLowerSectionContainer">
-                <div class="platlistEditorLowerSectionContainerLine" style="cursor: pointer;" @click="AddToQue(songs.track.uri)"> {{ songs.track.name }} </div>
-                <div class="platlistEditorLowerSectionContainerLine"> {{ songs.track.album.name }} </div>
-                <div class="platlistEditorLowerSectionContainerLine"> {{ songs.track.artists[0].name }} </div>
-                <div class="platlistEditorLowerSectionContainerLine"> {{ songs.track.album.release_date }} </div>
-                <div class="platlistEditorLowerSectionContainerLine"> {{ Math.floor(songs.track.duration_ms / 1000 / 60 % 60).toString().padStart(2, "0") }}:{{ Math.floor(songs.track.duration_ms / 1000 % 60).toString().padStart(2, "0") }} </div>
-                <div class="platlistEditorLowerSectionContainerLine"> {{ songs.track.popularity }} </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineLong" style="cursor: pointer;" @click="AddToQue(songs.track.uri)"> {{ songs.track.name }} </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineLong"> {{ songs.track.album.name }} </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineLong"> {{ songs.track.artists[0].name }} </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineMedium"> {{ songs.track.album.release_date }} </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineShort"> {{ Math.floor(songs.track.duration_ms / 1000 / 60 % 60).toString().padStart(2, "0") }}:{{ Math.floor(songs.track.duration_ms / 1000 % 60).toString().padStart(2, "0") }} </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineShort"> {{ songs.track.popularity }} </div>
               </div>
             </div>
 
@@ -1012,11 +992,23 @@ export default {
   }
 
   .platlistEditorLowerSectionContainerLine{
-    width: 340px;
+
     margin-right: 10px;
     overflow: hidden;
     white-space: nowrap;
     margin: 0px 0 6px 0;
+  }
+
+  .playlistLineLong{
+    width: 340px;
+  }
+  
+  .playlistLineShort{
+    width: 95px;
+  }
+
+  .playlistLineMedium{
+    width: 160px;
   }
 
   .platlistEditorLowerSectionContainerLine p {
