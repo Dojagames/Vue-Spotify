@@ -45,6 +45,7 @@ export default {
       isCurrentSongLiked: false,
 
       currentSongId: "",
+      contextUri: "",
 
       currentSongProgress: 0,
       SongProgressMs: 0,
@@ -78,6 +79,9 @@ export default {
       currentFavList: {"tracks": []},
       volumeClickWidth: 0,
       progressClickWidth: 0,
+
+      que: [],
+      currentSong: {name: "", },
     }
   },
   components: {
@@ -145,7 +149,9 @@ export default {
         console.log(_data);
         
         if(this.currentSongId != _data.item.id){
+          this.contextUri = _data.context.uri;
           this.currentSongId = _data.item.id;
+          this.GetQue();
           this.CallApi( "GET", "https://api.spotify.com/v1/me/tracks/contains?ids=" + this.currentSongId, null, "checkIfLiked");
         }
 
@@ -241,6 +247,10 @@ export default {
         });
         this.CallApi("POST", `https://api.spotify.com/v1/playlists/${this.currentFavId}/tracks`, _addData);
       } else if(instruction == "getQue"){
+        console.log(_data);
+        this.currentSong = _data.currently_playing;
+        this.que = _data.queue;
+      } else if(instruction == "test"){
         console.log(_data);
       }
     },
@@ -367,6 +377,13 @@ export default {
     GetQue(){
       this.CallApi("GET", `https://api.spotify.com/v1/me/player/queue`, null, "getQue");
     },
+
+    SkipNSongs(_i){
+      for(_i; _i > 0; _i--){
+        this.CallApi('POST', 'https://api.spotify.com/v1/me/player/next', null, 'test' )
+      } 
+      
+    }
 
 
   },
@@ -604,7 +621,15 @@ export default {
         
   
         <div id="que" v-if="mode == 'que'">
-        
+          <h1>QUE</h1><br>
+          <h3>current Song:</h3>
+          <p id="currentSongQue"><b>{{ currentSong.name }}</b> by {{ currentSong.artists[0].name }}</p><br><br>
+          <h3>queued Songs:</h3>
+          <div id="queuedSongs">
+            <p v-for="(song, index) in que" @click="SkipNSongs(index + 1)"><b>{{ song.name }}</b> by {{ song.artists[0].name }}</p><br><br>
+          </div>
+          
+
         </div>
 
         <div id="playlistCreator" v-else-if="mode == 'create'">
@@ -1061,10 +1086,18 @@ export default {
 
 
 
+  #que{
+    text-align: center;
+  }
 
+  #currentSongQue{
+    margin-top: 40px;
+  }
 
-
-
+  #queuedSongs{
+    height: 550px;
+    overflow-y: scroll;
+  }
 
 
 
