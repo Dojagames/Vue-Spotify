@@ -80,6 +80,11 @@ export default {
       volumeClickWidth: 0,
       progressClickWidth: 0,
 
+      deviceActive: false,
+
+      devices: [],
+      activeDevice: "",
+
       que: [],
       currentSong: {name: "", },
     }
@@ -152,6 +157,7 @@ export default {
           this.contextUri = _data.context.uri;
           this.currentSongId = _data.item.id;
           this.GetQue();
+          this.GetDevices();
           this.CallApi( "GET", "https://api.spotify.com/v1/me/tracks/contains?ids=" + this.currentSongId, null, "checkIfLiked");
         }
 
@@ -250,8 +256,11 @@ export default {
         console.log(_data);
         this.currentSong = _data.currently_playing;
         this.que = _data.queue;
-      } else if(instruction == "test"){
-        console.log(_data);
+      } else if(instruction == "getDevices"){
+        this.devices = _data.devices.filter(e => !e.is_active);
+        this.activeDevice = _data.devices.filter(e => e.is_active)[0];
+
+        console.log(_data.devices);
       }
     },
 
@@ -378,13 +387,23 @@ export default {
       this.CallApi("GET", `https://api.spotify.com/v1/me/player/queue`, null, "getQue");
     },
 
+    GetDevices(){
+      this.CallApi("GET", 'https://api.spotify.com/v1/me/player/devices', null, "getDevices");
+    },
+
     SkipNSongs(_i){
       for(_i; _i > 0; _i--){
         this.CallApi('POST', 'https://api.spotify.com/v1/me/player/next', null, 'test' )
       } 
       
-    }
+    },
 
+    ChangeDevice(_clickedObj){
+      this.CallApi('PUT', 'https://api.spotify.com/v1/me/player/', { 'device_ids': [_clickedObj.id]}); 
+      this.devices.push(this.activeDevice);
+      this.activeDevice = _clickedObj;
+      this.devices = this.devices.filter(e => e != _clickedObj);
+    },
 
   },
   created() {
@@ -772,13 +791,28 @@ export default {
 
 
           <div id="playerRightBar">
-            <img id="playerQue" src="iconation/activeList.png" v-if="mode == 'que'" @click="mode = previous_mode">
-            <img id="playerQue" src="iconation/list.png" v-else @click="previous_mode = mode; mode = 'que'; GetQue()">
-            <img id="playerDevices" src="iconation/deviced.png">
+            <img class="playerRightBarImg" id="playerQue" src="iconation/activeList.png" v-if="mode == 'que'" @click="mode = previous_mode">
+            <img class="playerRightBarImg" id="playerQue" src="iconation/list.png" v-else @click="previous_mode = mode; mode = 'que'; GetQue()">
+            <div>
+              <img class="playerRightBarImg" id="playerDevices" src="iconation/deviced_active.png" v-if="deviceActive" @click="deviceActive = false">
+              <img class="playerRightBarImg" id="playerDevices" src="iconation/deviced.png" v-else  @click="deviceActive = true; GetDevices()">
+              <div id="deviceList" :class="deviceActive? 'deviceShow': 'deviceHide'">
+                <h3><b>active Device</b></h3>
+                <p>{{ activeDevice.name }}</p>
+                <h4>select other Device</h4>
+                <div v-for="device in devices" id="deviceListAvailible" @click="ChangeDevice(device)">
+                  <p>{{ device.name }}</p>
+                 
+                  <img class="availibleImg" src="iconation/pc.png" v-if="device.type == 'Computer'">
+                  <img class="availibleImg" src="iconation/smartphone.png" v-else-if="device.type == 'Smartphone'">
+                  <img class="availibleImg" src="iconation/speaker.png" v-else="device.type == 'Speaker'">
+                </div>
+              </div>
+            </div>
             <div id="playerVolume">
-              <img v-if="player.device.volume_percent > 90" src="iconation/speaker-full.png">
-              <img v-else-if=" 0 < player.device.volume_percent" src="iconation/speaker-medium.png">
-              <img v-else src="iconation/speaker-muted.png">
+              <img class="playerRightBarImg" v-if="player.device.volume_percent > 90" src="iconation/speaker-full.png">
+              <img class="playerRightBarImg" v-else-if=" 0 < player.device.volume_percent" src="iconation/speaker-medium.png">
+              <img class="playerRightBarImg" v-else src="iconation/speaker-muted.png">
               <div id="volumeBar">
                 <div id="volumeBelowBar" :style="{'width': player.device.volume_percent + '%'}"></div>
               </div>
@@ -1102,6 +1136,49 @@ export default {
 
 
 
+  #deviceList{
+    width: 200px;
+    height: 300px;
+    background-color: rgb(48, 48, 48);
+    position: absolute;
+    right: 76px;
+    /* transform: translate(90%,-100%); */
+    bottom: 60px;
+    z-index: 2;
+
+    text-align: center;
+    border-radius: 12px;
+   
+  }
+
+  #deviceList h3{
+    margin-top: 10px;
+  }
+
+  #deviceListAvailible{
+    text-align: right; 
+
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    margin: 0 5px;
+  }
+
+  .availibleImg{
+    width: 20px;
+    height: 20px;
+    position: relative;
+    top:20px;
+    display: inline;
+  }
+
+  .deviceShow{
+    display: block;
+  }
+
+  .deviceHide{
+    display: none;
+  }
 
 
 
@@ -1299,7 +1376,7 @@ export default {
   }
 
 
-  #playerRightBar img{
+  .playerRightBarImg{
     width: 20px;
     position: absolute;
     top: 50%;
