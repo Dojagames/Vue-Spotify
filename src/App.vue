@@ -14,10 +14,7 @@ export default {
       previous_mode: "",
 
 
-      playlists: [
-        // {name: "test", tracks:{total: 5}, images: [{url: "https://i.scdn.co/image/ab67616d00004851dbf39405c765e4f4a7b9ad89"}]},
-        
-      ],
+      playlists: [],
       currentPlaylist: undefined,
       currentPlaylistSongs: [],
 
@@ -27,17 +24,7 @@ export default {
       usermodel: {},
       user_img: "/test.png",
 
-      player: {
-        item: {
-          name: "",
-          album: {
-            images:[{},{url: ""}],
-          },
-        },
-        device: {
-            volume_percent: 100,
-        },
-      },
+      player: {},
       player_raw: undefined,
       player_img: "",
       player_title: "",
@@ -266,8 +253,6 @@ export default {
 
 
 
-
-
     HandleAuthResponse(a){
       console.log(a);
       RefreshTimer();
@@ -293,7 +278,6 @@ export default {
     },
 
     SaveCurrentPlaylist(){
-      //cp = this.currentPlaylistSongs;
 
       //remove all items from playlist
       let _data = {"tracks": []};
@@ -307,7 +291,6 @@ export default {
         } 
       }
       this.CallApi("DELETE", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _data);  
-
 
 
       //add Songs
@@ -377,6 +360,8 @@ export default {
       } else if(type == "playlist"){
         this.CallApi("GET", `https://api.spotify.com/v1/playlists/${id}`, null, "GetImage" )
       }
+
+      this.inputLink = "";
     },
 
     AddToQue(_uri){
@@ -658,8 +643,6 @@ export default {
 
           <input type="text" v-model="inputLink" style="background-color: transparent; width: 760px;">
           <button @click="GetImage">Get Image</button>
-          <!-- list of created playlist -->
-          <!-- paste link to get image -->
         </div>
 
         <div id="interactivePlaylistEditor" v-else>
@@ -985,9 +968,7 @@ export default {
   #PlatlistEditorUpperSection{
     height: 400px;
     width: 100%;
-    /* background-color: rgba(255, 0, 0, 0.158); */
     position: relative;
-    
   }
 
   #PlaylistEditorViewerWrapper{
@@ -1050,7 +1031,6 @@ export default {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
-    /* background-color: rgba(255, 0, 0, 0.438); */
   }
 
   .playlistEditorButtonsBtns {
@@ -1140,7 +1120,6 @@ export default {
     background-color: rgb(48, 48, 48);
     position: absolute;
     right: 76px;
-    /* transform: translate(90%,-100%); */
     bottom: 60px;
     z-index: 2;
 
@@ -1207,9 +1186,6 @@ export default {
 
     top: 15px;
     left: 15px;
-
-    /* background-color: rgba(250, 235, 215, 0.26); */
-
   }
 
   #playerImg{
