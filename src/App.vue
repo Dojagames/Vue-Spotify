@@ -57,6 +57,18 @@ export default {
 
       },
 
+      player: {
+        item: {
+          name: "",
+          album: {
+            images:[{},{url: ""}],
+          },
+        },
+        device: {
+            volume_percent: 100,
+        },
+      },
+
       saveUri: false,
 
       inputLink: "",
