@@ -594,8 +594,6 @@ export default {
 
   <div id="loginWrapper" v-if="window === 'login' && !loggedIn">
 
-    <button class="clickable" @click="RequestAuthorization(id, secret)">Login</button>
-
   </div>
 
   <div id="mainWrapper" v-else>
@@ -1161,7 +1159,7 @@ export default {
     display: flex;
     flex-wrap: nowrap;
     justify-content: space-between;
-    margin: 0 5px;
+    margin: 0 8px;
   }
 
   .availibleImg{

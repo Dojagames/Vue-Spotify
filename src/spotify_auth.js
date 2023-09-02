@@ -29,4 +29,3 @@ async function fetchWebApi(endpoint, method, body) {
     });
     return await res.json();
 }
-
