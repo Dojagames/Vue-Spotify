@@ -94,6 +94,7 @@ export default {
 
       AddSelectionOpen: false,
       FilterOpen: false,
+      experimental: false,
     }
   },
   components: {
@@ -474,28 +475,49 @@ export default {
       });
     },
     sortTopSongs(){
-      this.allPlaylists.forEach((e) => {
-        console.log(e);
-        e.tracks.items.forEach((f) =>{
-          // console.log(f)
-          if(this.topPlaylistSongs.filter(g => g.track.uri == f.track.uri).length > 0){
-            this.topPlaylistSongs.filter(g => g.track.uri == f.track.uri)[0].count ++;
-            this.topPlaylistSongs.filter(g => g.track.uri == f.track.uri)[0].playlists.push(e.name);
+      // this.allPlaylists.forEach((e) => {
+      //   console.log(e);
+      //   e.tracks.items.forEach((f) =>{
+      //     // console.log(f)
+      //     if(this.topPlaylistSongs.filter(g => g.track.uri == f.track.uri).length > 0){
+      //       this.topPlaylistSongs.filter(g => g.track.uri == f.track.uri)[0].count ++;
+      //       this.topPlaylistSongs.filter(g => g.track.uri == f.track.uri)[0].playlists.push(e.name);
+      //     } else {
+      //       f.count = 1;
+      //       f.playlists = [];
+      //       f.playlists.push(e.name);
+      //       console.log(f.playlists);
+      //       this.topPlaylistSongs.push(f);
+      //     }
+      //   })
+      // });
+
+
+
+      for(let i = 0; i < this.allPlaylists.length; i++){
+        console.log(this.allPlaylists[i].name);
+        for(let j = 0; j < this.allPlaylists[i].tracks.items.length; j++){
+
+          if(this.topPlaylistSongs.filter(g => g.track.uri == this.allPlaylists[i].tracks.items[j].track.uri).length > 0){
+            this.topPlaylistSongs.filter(g => g.track.uri == this.allPlaylists[i].tracks.items[j].track.uri)[0].count ++;
+            this.topPlaylistSongs.filter(g => g.track.uri == this.allPlaylists[i].tracks.items[j].track.uri)[0].playlists.push({name: this.allPlaylists[i].name, position: j + 1});
           } else {
-            f.count = 1;
-            f.playlists = [];
-            f.playlists.push(e.name);
-            console.log(f.playlists);
-            this.topPlaylistSongs.push(f);
+            this.allPlaylists[i].tracks.items[j].count = 1;
+            this.allPlaylists[i].tracks.items[j].playlists = [];
+            this.allPlaylists[i].tracks.items[j].playlists.push({name: this.allPlaylists[i].name, position: j + 1});
+            this.topPlaylistSongs.push(this.allPlaylists[i].tracks.items[j]);
           }
-        })
-      });
+
+        }
+      }
 
       this.topPlaylistSongs.sort((b,a) => (a.count > b.count) ? 1 : (b.count > a.count) ? -1 : 0);
     },
 
-    OpenFilter(){
-      //open FilterModal
+    openExperimental(){
+      if(confirm("warning! \n you are about to enable experimental features... while using certain features your browser can be unresponsive or crashing")){
+        this.experimental = true;
+      }
     },
 
     // showTopSongPlaylists(_playlists){
@@ -771,8 +793,9 @@ export default {
           <input type="text" v-model="inputLink" style="background-color: transparent; width: 760px;" placeholder="paste a Link to a playlist or an album to get there Cover" >
           <button @click="GetImage" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;">Get Image</button><br><br>
 
-          <button style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;">enable experimental features</button>
-          <button @click="getTopSongs()">get Top Songs in Playlists</button>
+          <button style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;" @click="openExperimental()" v-if="!experimental">enable experimental features</button>
+          <div id="experimentalSection" v-if="experimental">
+            <button @click="getTopSongs()">get Top Songs in Playlists</button>
           <button @click="sortTopSongs()">show Top Songs in Playlists</button>
           <div id="topsonglist" style=" width: 50%; height: 400px; overflow-y: scroll;">
             <div v-for="songs in topPlaylistSongs" @click="currentSongPlaylists = songs.playlists" class="clickable">
@@ -781,8 +804,9 @@ export default {
           </div>
           <div id="topSongPlaylists" style=" position: relative; left: 50%; top: -400px; width: 30%; height: 300px; overflow-y: scroll;">
             <div v-for="playlist in currentSongPlaylists">
-              {{ playlist }}
+              {{ playlist.name }} -  {{ playlist.position }}
             </div>
+          </div>
           </div>
         </div>
 
