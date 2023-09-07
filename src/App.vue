@@ -52,7 +52,7 @@ export default {
         release: {
           before: "",
           after: "",
-        }, 
+        },
         genres: {},
 
       },
@@ -86,13 +86,21 @@ export default {
 
       que: [],
       currentSong: {name: "", },
+
+
+      topPlaylistSongs: [],
+      allPlaylists: [],
+      currentSongPlaylists: [],
+
+      AddSelectionOpen: false,
+      FilterOpen: false,
     }
   },
   components: {
     spotify_auth,
   },
   props: {
-      
+
   },
   methods: {
 
@@ -126,7 +134,7 @@ export default {
             console.log(this.responseURL);
           } else if(this.status == 403){
               if(this.responseText == "Index out of bounds."){
-                currentScope.CallApi(method, url, body, instruction); 
+                currentScope.CallApi(method, url, body, instruction);
               }
           } else {
             console.log(this.status);
@@ -135,7 +143,7 @@ export default {
     },
 
 
-    
+
 
     doSmtWithData(_data, instruction){
       if(instruction == "initial"){
@@ -151,7 +159,7 @@ export default {
         };
 
         console.log(_data);
-        
+
         if(this.currentSongId != _data.item.id){
           this.contextUri = _data.context.uri;
           this.currentSongId = _data.item.id;
@@ -160,16 +168,16 @@ export default {
           this.CallApi( "GET", "https://api.spotify.com/v1/me/tracks/contains?ids=" + this.currentSongId, null, "checkIfLiked");
         }
 
-        
+
 
         this.player = _data;
         this.SongProgressMs = _data.item.duration_ms;
         this.currentSongProgress = _data.progress_ms / _data.item.duration_ms * 100;
 
-        
 
-        this.currentSongProgressTime = (Math.floor((_data.progress_ms / 1000) / 60)).toString() + ":" + (Math.floor(_data.progress_ms / 1000) % 60).toString().padStart(2, "0"); 
-        this.currentSongDurationTime = (Math.floor((_data.item.duration_ms / 1000) / 60)).toString() + ":" + (Math.floor(_data.item.duration_ms / 1000) % 60).toString().padStart(2, "0"); 
+
+        this.currentSongProgressTime = (Math.floor((_data.progress_ms / 1000) / 60)).toString() + ":" + (Math.floor(_data.progress_ms / 1000) % 60).toString().padStart(2, "0");
+        this.currentSongDurationTime = (Math.floor((_data.item.duration_ms / 1000) / 60)).toString() + ":" + (Math.floor(_data.item.duration_ms / 1000) % 60).toString().padStart(2, "0");
         //console.log(data);
 
 
@@ -193,14 +201,14 @@ export default {
         }
         this.currentPlaylistSongs = this.currentPlaylistSongs.concat(_data.items);
         if(_data.next != null){
-          this.CallApi( 'GET', _data.next, null, 'getSongsFromCurrentPlaylist')
+          this.CallApi( 'GET', _data.next, null, 'getSongsFromCurrentPlaylist');
+          console.log(_data);
         } else {
-          console.log(this.currentPlaylistSongs);
           playlistSelected = true;
           this.playlists[this.playlists.findIndex(e => e.id == this.currentPlaylist.id)].tracks.total = this.currentPlaylistSongs.length;
         }
 
-        //if _data.total 
+        //if _data.total
 
       } else if(instruction == "updateCurrentPlaylist"){
         this.CallApi( 'GET', `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, null, 'getSongsFromCurrentPlaylist');
@@ -237,7 +245,7 @@ export default {
           this.CallApi( 'GET', _data.next, null, 'refreshTopSongList');
         } else {
           this.CallApi("DELETE", `https://api.spotify.com/v1/playlists/${this.currentFavId}/tracks`, this.currentFavList);
-          
+
           this.currentFavList = {"tracks": []};
 
           this.CallApi("GET", `https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=${this.currentFavType}`, null, "updateTopSongList" )
@@ -260,6 +268,24 @@ export default {
         this.activeDevice = _data.devices.filter(e => e.is_active)[0];
 
         console.log(_data.devices);
+      } else if(instruction == "getAllPlaylists"){
+
+        if(_data.hasOwnProperty("tracks")){
+          this.allPlaylists.push(_data);
+
+          if(_data.tracks.next != null){
+            this.CallApi( 'GET', _data.tracks.next, null, 'getAllPlaylists');
+          }
+        } else {
+          const _id = _data.href.split("/")[5];
+          // console.log(this.allPlaylists.filter(e => e.id == _id)[0]);
+          // console.log(_data.items);
+          this.allPlaylists.filter(e => e.id == _id)[0].tracks.items = this.allPlaylists.filter(e => e.id == _id)[0].tracks.items.concat(_data.items);
+
+          if(_data.next != null){
+            this.CallApi( 'GET', _data.next, null, 'getAllPlaylists');
+          }
+        }
       }
     },
 
@@ -272,7 +298,7 @@ export default {
       this.CallApi( "GET", "https://api.spotify.com/v1/me/player", null, "playerState");
 
       this.CallApi( "GET", "https://api.spotify.com/v1/me/", null, "initial");
-      
+
       this.CallApi( "GET", "https://api.spotify.com/v1/me/playlists?limit=50", null, "InitialPlaylistSync");
 
       let interval = false;
@@ -295,14 +321,14 @@ export default {
       let _data = {"tracks": []};
       for (let i = 0; i < this.currentPlaylistSongs.length; i++) {
         if(i % 100 == 0 && i != 0){
-          this.CallApi("DELETE", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _data);  
+          this.CallApi("DELETE", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _data);
           _data = {"tracks": []};
-        } 
+        }
         if(!this.currentPlaylistSongs[i].track.uri.includes("spotify:local")){
           _data.tracks.push({"uri": this.currentPlaylistSongs[i].track.uri});
-        } 
+        }
       }
-      this.CallApi("DELETE", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _data);  
+      this.CallApi("DELETE", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _data);
 
 
       //add Songs
@@ -320,6 +346,36 @@ export default {
         }
       }
       this.CallApi("POST", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _addData, "updateCurrentPlaylist");
+    },
+
+    AddSelection(_id){
+      let _addData = {"uris": []};
+      for(let i = 0; i < this.filteredPlaylist.length; i++){
+        if(i % 100 == 0 && i != 0){
+          this.CallApi("POST", `https://api.spotify.com/v1/playlists/${_id}/tracks`, _addData);
+          _addData = {"uris": []};
+        }
+        if(!this.filteredPlaylist[i].track.uri.includes("spotify:local")){
+          _addData.uris.push(this.filteredPlaylist[i].track.uri);
+        }
+      }
+      this.CallApi("POST", `https://api.spotify.com/v1/playlists/${_id}/tracks`, _addData);
+
+      this.AddSelectionOpen = false;
+    },
+
+    DeleteSelection(){
+      let _data = {"tracks": []};
+      for (let i = 0; i < this.filteredPlaylist.length; i++) {
+        if(i % 100 == 0 && i != 0){
+          this.CallApi("DELETE", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _data);
+          _data = {"tracks": []};
+        }
+        if(!this.filteredPlaylist[i].track.uri.includes("spotify:local")){
+          _data.tracks.push({"uri": this.filteredPlaylist[i].track.uri});
+        }
+      }
+      this.CallApi("DELETE", `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, _data);
     },
 
     CreatePlaylist(_type, _descr, _length, _name){
@@ -347,17 +403,17 @@ export default {
         tempPlaylist.length = _length;
         this.CallApi("GET", `https://api.spotify.com/v1/me/top/tracks?limit=${(_length < 50)? _length : 50}&time_range=${_type}`, null, "createPlaylist" )
       }
-       
-      
 
-      
+
+
+
     },
 
     GetImage(){
       let shortedUrl = this.inputLink.split("?")[0];
       let id;
       let type;
-    
+
       if(shortedUrl.includes(":")){
         shortedUrl = shortedUrl.substring(8);
         type = shortedUrl.split("/")[1];
@@ -391,20 +447,64 @@ export default {
     SkipNSongs(_i){
       for(_i; _i > 0; _i--){
         this.CallApi('POST', 'https://api.spotify.com/v1/me/player/next', null, 'test' )
-      } 
-      
+      }
+
     },
 
     ChangeDevice(_clickedObj){
-      this.CallApi('PUT', 'https://api.spotify.com/v1/me/player/', { 'device_ids': [_clickedObj.id]}); 
+      this.CallApi('PUT', 'https://api.spotify.com/v1/me/player/', { 'device_ids': [_clickedObj.id]});
       this.devices.push(this.activeDevice);
       this.activeDevice = _clickedObj;
       this.devices = this.devices.filter(e => e != _clickedObj);
     },
 
+    getTopSongs(){
+      console.log(this.own_playlists);
+      console.log(this.allPlaylists);
+      this.allPlaylists.forEach((e) => {
+        if(e.tracks.items.length > 100){
+          console.log(e);
+        }
+      })
+
+      this.allPlaylists = [];
+
+      this.own_playlists.forEach((e) => {
+        this.CallApi("GET", `https://api.spotify.com/v1/playlists/${e.id}`, null,"getAllPlaylists")
+      });
+    },
+    sortTopSongs(){
+      this.allPlaylists.forEach((e) => {
+        console.log(e);
+        e.tracks.items.forEach((f) =>{
+          // console.log(f)
+          if(this.topPlaylistSongs.filter(g => g.track.uri == f.track.uri).length > 0){
+            this.topPlaylistSongs.filter(g => g.track.uri == f.track.uri)[0].count ++;
+            this.topPlaylistSongs.filter(g => g.track.uri == f.track.uri)[0].playlists.push(e.name);
+          } else {
+            f.count = 1;
+            f.playlists = [];
+            f.playlists.push(e.name);
+            console.log(f.playlists);
+            this.topPlaylistSongs.push(f);
+          }
+        })
+      });
+
+      this.topPlaylistSongs.sort((b,a) => (a.count > b.count) ? 1 : (b.count > a.count) ? -1 : 0);
+    },
+
+    OpenFilter(){
+      //open FilterModal
+    },
+
+    // showTopSongPlaylists(_playlists){
+    //   this.currentSongPlaylists = _playlists;
+    // },
+
   },
   created() {
-      
+
   },
   mounted(){
     let warning = localStorage.getItem("warning");
@@ -426,7 +526,7 @@ export default {
           }
           this.volumeClickWidth = Math.round(((event.clientX - rect.left) / rect.width * 100) / 5) * 5;
           this.CallApi("PUT", `https://api.spotify.com/v1/me/player/volume?volume_percent=${this.volumeClickWidth}`, null);
-        } 
+        }
         else if(target.id == "playerProgress" || target.id == "playerProgressCurrent"){
           let rect;
           if(target.id == "playerProgressCurrent"){
@@ -438,7 +538,7 @@ export default {
           this.CallApi("PUT", `https://api.spotify.com/v1/me/player/seek?position_ms=${_progressClickWidth}`, null);
 
         }
-       
+
       });
 
 
@@ -485,7 +585,7 @@ export default {
         temp.sort(function(a, b) {
           const data_a = Date.parse(a.track.album.release_date);
           const data_b = Date.parse(b.track.album.release_date);
-          
+
           if( !isFinite(data_a) && !isFinite(data_b) ) {
               return 0;
           }
@@ -504,7 +604,7 @@ export default {
         temp.sort(function(b, a) {
           const data_a = Date.parse(a.track.album.release_date);
           const data_b = Date.parse(b.track.album.release_date);
-          
+
           if( !isFinite(data_a) && !isFinite(data_b) ) {
               return 0;
           }
@@ -546,14 +646,14 @@ export default {
         temp.sort((b,a) => (a.track.popularity > b.track.popularity) ? 1 : ((b.track.popularity > a.track.popularity) ? -1 : 0));
         return temp;
       }
-      
-      
-      
+
+
+
       else {
         return this.currentPlaylistSongs;
       }
 
-      
+
     },
     filteredPlaylist(){
       let temp = [...this.SortedPlaylist];
@@ -575,6 +675,22 @@ export default {
         temp = temp.filter((e) => e.track.album.release_date >= this.playlistFilters.release.after)
       }
 
+      if(this.playlistFilters.length.longer != ""){
+        if(!isNaN(this.playlistFilters.length.longer)){
+          temp = temp.filter((e) => e.track.duration_ms >= (this.playlistFilters.length.longer * 1000))
+        } else {
+          this.playlistFilters.length.longer = 0;
+        }
+      }
+
+      if(this.playlistFilters.length.shorter != ""){
+        if(!isNaN(this.playlistFilters.length.shorter)){
+          temp = temp.filter((e) => e.track.duration_ms <= (this.playlistFilters.length.shorter * 1000))
+        } else {
+          this.playlistFilters.length.shorter = 0;
+        }
+      }
+
       return temp;
     }
   }
@@ -594,10 +710,9 @@ export default {
   </div>
 
   <div id="mainWrapper" v-else>
-      <div id="userprofile">
+    <div id="userprofile">
       <div id="userIcon" class="clickable unmarkable">
         <img v-bind:src="user_img">
-        <p v-bind="username"></p>
       </div>
     </div>
 
@@ -632,8 +747,8 @@ export default {
 
       <!-- main section -->
       <div id="interactionWindow" class="unmarkable">
-        
-  
+
+
         <div id="que" v-if="mode == 'que'">
           <h1>QUE</h1><br>
           <h3>current Song:</h3>
@@ -642,19 +757,33 @@ export default {
           <div id="queuedSongs">
             <p v-for="(song, index) in que" @click="SkipNSongs(index + 1)"><b>{{ song.name }}</b> by {{ song.artists[0].name }}</p><br><br>
           </div>
-          
+
 
         </div>
 
         <div id="playlistCreator" v-else-if="mode == 'create'">
-          <button @click="CreatePlaylist('short_term','your top Songs from the last 30 Days', 50, 'top 30 days')">top 30 Days</button>
-          <button @click="CreatePlaylist('medium_term','your top Songs from the last 6Months', 50, 'top 6 months')">top 6 Months</button>
-          <button @click="CreatePlaylist('long_term','your top Songs ever', 50, 'all time favs')">top All time</button><br>
+          <button @click="CreatePlaylist('short_term','your top Songs from the last 30 Days', 50, 'top 30 days')" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;">top 30 Days</button>
+          <button @click="CreatePlaylist('medium_term','your top Songs from the last 6Months', 50, 'top 6 months')" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;">top 6 Months</button>
+          <button @click="CreatePlaylist('long_term','your top Songs ever', 50, 'all time favs')" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;">top All time</button><br>
           <input type="checkbox" v-model="saveUri"> create new Playlist<br><br><br>
 
 
-          <input type="text" v-model="inputLink" style="background-color: transparent; width: 760px;">
-          <button @click="GetImage">Get Image</button>
+          <input type="text" v-model="inputLink" style="background-color: transparent; width: 760px;" placeholder="paste a Link to a playlist or an album to get there Cover" >
+          <button @click="GetImage" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;">Get Image</button><br><br>
+
+          <button style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;">enable experimental features</button>
+          <button @click="getTopSongs()">get Top Songs in Playlists</button>
+          <button @click="sortTopSongs()">show Top Songs in Playlists</button>
+          <div id="topsonglist" style=" width: 50%; height: 400px; overflow-y: scroll;">
+            <div v-for="songs in topPlaylistSongs" @click="currentSongPlaylists = songs.playlists" class="clickable">
+              {{ songs.track.name }} - {{ songs.track.artists[0].name }} : {{ songs.count }}
+            </div>
+          </div>
+          <div id="topSongPlaylists" style=" position: relative; left: 50%; top: -400px; width: 30%; height: 300px; overflow-y: scroll;">
+            <div v-for="playlist in currentSongPlaylists">
+              {{ playlist }}
+            </div>
+          </div>
         </div>
 
         <div id="interactivePlaylistEditor" v-else>
@@ -677,23 +806,28 @@ export default {
                 <h4>by {{ currentPlaylist.owner.display_name }} • {{ currentPlaylist.tracks.total }} songs</h4>
               </div>
 
-          
 
-              <div id="playlistEditorFilterMenu">
-                Filter by 
-                <br><br>
-                duplicates: <input type="checkbox" v-model="playlistFilters.duplicates"><br>
-                release: after <input type="date" v-model="playlistFilters.release.after" style="background-color: transparent; border: none;"> before <input type="date" v-model="playlistFilters.release.before" style="background-color: transparent; border: none;"><br>
-                Genre<br>
-                length (in mm:ss): longer than <input type="text" v-model="playlistFilters.length.longer"> shorter then <input type="text" v-model="playlistFilters.length.shorter"><br>
-                
+
+              <div id="playlistEditorFilterMenu" :class="FilterOpen? '': 'invisible'" @click.self="FilterOpen = false">
+                <div id="playlistFilterModalInner">
+                  <p style="position: absolute; right: 15px; top: -5px; font-weight: bold; font-size: large;" @click="FilterOpen = false" class="clickable">x</p>
+                  Filter by
+                  <br><br>
+                  duplicates: <input type="checkbox" v-model="playlistFilters.duplicates"><br>
+                  release: after <input type="date" v-model="playlistFilters.release.after" style="background-color: transparent; border: none;"> before <input type="date" v-model="playlistFilters.release.before" style="background-color: transparent; border: none;"><br>
+                  length (in seconds): longer than <input type="text" v-model="playlistFilters.length.longer" style="background-color: transparent; border: 1px solid white; border-radius: 4px;"> shorter then <input type="text" v-model="playlistFilters.length.shorter" style="background-color: transparent; border: 1px solid white; border-radius: 4px;"><br>
+                </div>
               </div>
 
-              <div id="playlistEditorButtons" >
-                <button class="playlistEditorButtonsBtns clickable">add Selection to other Playlist</button>
-                <button class="playlistEditorButtonsBtns clickable">delete Selection</button>
-                <button @click="SaveCurrentPlaylist()" class="clickable playlistEditorButtonsBtns">save Selection</button>
-                <button id="saveBtnPlaylistEditor" class="clickable playlistEditorButtonsBtns">save</button>
+              <div id="playlistEditorButtons">
+                <div id="addplaylistPopup" :class="AddSelectionOpen? '' : 'invisible'">
+                  <div v-for="list in own_playlists" @click="AddSelection(list.id)">
+                    {{ list.name }}
+                  </div>
+                </div>
+                <button @click="AddSelectionOpen = !AddSelectionOpen" class="playlistEditorButtonsBtns clickable">add Selection to other Playlist</button>
+                <button @click="DeleteSelection()" class="playlistEditorButtonsBtns clickable">delete Selection</button>
+                <button id="saveBtnPlaylistEditor" @click="SaveCurrentPlaylist()" class="clickable playlistEditorButtonsBtns">save Selection</button>
               </div>
 
             </div>
@@ -702,13 +836,14 @@ export default {
 
             <div id="PlatlistEditorLowerSection">
               <div class="platlistEditorLowerSectionContainer" style="padding-bottom: 15px; position: fixed; background: linear-gradient(180deg, var(--firstElementBackground) 40%, rgba(255, 0, 0, 0) 100%);">
-                <div class="platlistEditorLowerSectionContainerLine playlistLineLong" style="color: var(--accentGreen); font-weight: bold;">Name <p v-if="playlistFilterOptions == 'name_a'" @click="playlistFilterOptions = 'name_d'">▲</p><p v-else-if="playlistFilterOptions == 'name_d'" @click="playlistFilterOptions = ''">▼</p><p v-else @click="playlistFilterOptions = 'name_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine playlistLineLong" style="color: var(--accentGreen); font-weight: bold;">Album <p v-if="playlistFilterOptions == 'album_a'" @click="playlistFilterOptions = 'album_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'album_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'album_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine playlistLineLong" style="color: var(--accentGreen); font-weight: bold;">Artist <p v-if="playlistFilterOptions == 'artist_a'" @click="playlistFilterOptions = 'artist_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'artist_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'artist_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine playlistLineMedium" style="color: var(--accentGreen); font-weight: bold;">Release Date <p v-if="playlistFilterOptions == 'release_a'" @click="playlistFilterOptions = 'release_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'release_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'release_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine playlistLineShort" style="color: var(--accentGreen); font-weight: bold;">Length <p v-if="playlistFilterOptions == 'length_a'" @click="playlistFilterOptions = 'length_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'length_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'length_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine playlistLineShort" style="color: var(--accentGreen); font-weight: bold;">Popularity <p v-if="playlistFilterOptions == 'pop_a'" @click="playlistFilterOptions = 'pop_d'">ʌ</p><p v-else-if="playlistFilterOptions == 'pop_d'" @click="playlistFilterOptions = ''">v</p><p v-else @click="playlistFilterOptions = 'pop_a'">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine playlistLineShort" style="color: var(--accentGreen); font-weight: bold;">Random <input type="checkbox"  v-model="playlistSortedRandom" class="PlaylistEditSortingBox" @change="playlistSortedRandom ? playlistFilterOptions = 'random' : playlistFilterOptions = ''"></div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineLong" style="color: var(--accentGreen); font-weight: bold;">Name <p v-if="playlistFilterOptions == 'name_a'" @click="playlistFilterOptions = 'name_d'" class="clickable">▲</p><p v-else-if="playlistFilterOptions == 'name_d'" @click="playlistFilterOptions = ''" class="clickable" >▼</p><p v-else @click="playlistFilterOptions = 'name_a'" class="clickable">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineLong" style="color: var(--accentGreen); font-weight: bold;">Album <p v-if="playlistFilterOptions == 'album_a'" @click="playlistFilterOptions = 'album_d'" class="clickable">ʌ</p><p v-else-if="playlistFilterOptions == 'album_d'" @click="playlistFilterOptions = ''" class="clickable">v</p><p v-else @click="playlistFilterOptions = 'album_a'" class="clickable">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineLong" style="color: var(--accentGreen); font-weight: bold;">Artist <p v-if="playlistFilterOptions == 'artist_a'" @click="playlistFilterOptions = 'artist_d'" class="clickable">ʌ</p><p v-else-if="playlistFilterOptions == 'artist_d'" @click="playlistFilterOptions = ''" class="clickable">v</p><p v-else @click="playlistFilterOptions = 'artist_a'" class="clickable">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineMedium" style="color: var(--accentGreen); font-weight: bold;">Release Date <p v-if="playlistFilterOptions == 'release_a'" @click="playlistFilterOptions = 'release_d'" class="clickable">ʌ</p><p v-else-if="playlistFilterOptions == 'release_d'" @click="playlistFilterOptions = ''" class="clickable">v</p><p v-else @click="playlistFilterOptions = 'release_a'" class="clickable">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineShort" style="color: var(--accentGreen); font-weight: bold;">Length <p v-if="playlistFilterOptions == 'length_a'" @click="playlistFilterOptions = 'length_d'" class="clickable">ʌ</p><p v-else-if="playlistFilterOptions == 'length_d'" @click="playlistFilterOptions = ''" class="clickable">v</p><p v-else @click="playlistFilterOptions = 'length_a'" class="clickable">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineShort" style="color: var(--accentGreen); font-weight: bold;">Popularity <p v-if="playlistFilterOptions == 'pop_a'" @click="playlistFilterOptions = 'pop_d'" class="clickable">ʌ</p><p v-else-if="playlistFilterOptions == 'pop_d'" @click="playlistFilterOptions = ''" class="clickable">v</p><p v-else @click="playlistFilterOptions = 'pop_a'" class="clickable">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineShort" style="color: var(--accentGreen); font-weight: bold;">Random <input type="checkbox"  v-model="playlistSortedRandom" class="PlaylistEditSortingBox clickable" @change="playlistSortedRandom ? playlistFilterOptions = 'random' : playlistFilterOptions = ''" ></div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineShort clickable" style="color: var(--accentGreen); font-weight: bold; text-decoration: underline;" @click="FilterOpen = true">Filter</div>
               </div>
               <div style="margin-bottom: 40px;"></div>
               <div v-for="songs in filteredPlaylist" class="platlistEditorLowerSectionContainer">
@@ -724,7 +859,7 @@ export default {
           </div>
 
         </div>
-        
+
 
 
 
@@ -748,7 +883,7 @@ export default {
                 </div>
 
             </div>
-            
+
           </div>
 
 
@@ -793,13 +928,16 @@ export default {
                 <h3><b>active Device</b></h3>
                 <p>{{ activeDevice.name }}</p>
                 <h4>select other Device</h4>
-                <div v-for="device in devices" id="deviceListAvailible" @click="ChangeDevice(device)">
+                <div id="deviceWrapper">
+                  <div v-for="device in devices" id="deviceListAvailible" @click="ChangeDevice(device)">
                   <p>{{ device.name }}</p>
-                 
+
                   <img class="availibleImg" src="iconation/pc.png" v-if="device.type == 'Computer'">
                   <img class="availibleImg" src="iconation/smartphone.png" v-else-if="device.type == 'Smartphone'">
                   <img class="availibleImg" src="iconation/speaker.png" v-else="device.type == 'Speaker'">
                 </div>
+                </div>
+                
               </div>
             </div>
             <div id="playerVolume">
@@ -861,12 +999,12 @@ export default {
   }
 
   .unmarkable{
-    -webkit-touch-callout: none; 
+    -webkit-touch-callout: none;
     -webkit-user-select: none;
-    -khtml-user-select: none; 
+    -khtml-user-select: none;
     -moz-user-select: none;
-    -ms-user-select: none; 
-    user-select: none; 
+    -ms-user-select: none;
+    user-select: none;
   }
 
   .playlists{
@@ -978,14 +1116,14 @@ export default {
   }
 
   #PlatlistEditorUpperSection{
-    height: 400px;
+    height: 200px;
     width: 100%;
     position: relative;
   }
 
   #PlaylistEditorViewerWrapper{
     width: 100%;
-    height: calc(100% - 110px - 400px);
+    height: calc(100% - 110px - 205px);
   }
 
   #PlaylistEditorSelectedPlaylistWrapper{
@@ -1028,21 +1166,51 @@ export default {
   }
 
   #playlistEditorFilterMenu{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 6;
+    background-color: #00000098;
+    top: 0;
+    left: 0;
+    text-align: center;
+  }
+
+  #playlistFilterModalInner{
+    width: 660px;
+    height: 140px;
+    padding: 20px;
+    background-color: #101014;
+    border-radius: 12px;
+
     position: absolute;
-    right: 60px;
-    text-align: right;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
   }
 
   #playlistEditorButtons{
     position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    top: 340px;
-    width: 360px;
-    height: 60px;
+    right: 20px;
+    bottom: 20px;
+    width: 380px;
+    height: 40px;
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
+  }
+
+  .invisible{
+    display: none;
+  }
+
+  #addplaylistPopup{
+    position: absolute;
+    transform: translateY(40px);
+    width: 190px;
+    height: 280px;
+    background-color: rgba(255, 0, 0, 0.123);
+    z-index: 4;
+    overflow-y: scroll;
   }
 
   .playlistEditorButtonsBtns {
@@ -1054,12 +1222,9 @@ export default {
   }
 
   #saveBtnPlaylistEditor{
-    width: 100%;
-    height: 20px;
-    background-color: var(--accentGreen);
-    color: #000000;
+    color: var(--accentGreen);
     text-transform:uppercase;
-    letter-spacing: 1px;
+    font-weight: bold;
   }
 
 
@@ -1095,7 +1260,7 @@ export default {
   .playlistLineLong{
     width: 340px;
   }
-  
+
   .playlistLineShort{
     width: 95px;
   }
@@ -1128,7 +1293,7 @@ export default {
 
   #deviceList{
     width: 200px;
-    height: 300px;
+    height: 350px;
     background-color: rgb(48, 48, 48);
     position: absolute;
     right: 76px;
@@ -1137,7 +1302,12 @@ export default {
 
     text-align: center;
     border-radius: 12px;
-   
+
+  }
+
+  #deviceWrapper{
+    height: 215px;
+    overflow-y: auto;
   }
 
   #deviceList h3{
@@ -1145,8 +1315,7 @@ export default {
   }
 
   #deviceListAvailible{
-    text-align: right; 
-
+    text-align: right;
     display: flex;
     flex-wrap: nowrap;
     justify-content: space-between;
@@ -1221,7 +1390,7 @@ export default {
   #playerPlaying p{
     line-height: 0%;
   }
-  
+
   #playerPlaying small{
     line-height: 100%;
     overflow: visible;
@@ -1232,7 +1401,7 @@ export default {
     overflow: hidden;
     white-space: nowrap;
   }
-  
+
   .likedIconPlayer{
     width: 20px;
     float: right;
