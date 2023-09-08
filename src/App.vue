@@ -144,8 +144,6 @@ export default {
     },
 
 
-
-
     doSmtWithData(_data, instruction){
       if(instruction == "initial"){
         this.usermodel = _data;
@@ -170,16 +168,13 @@ export default {
         }
 
 
-
         this.player = _data;
         this.SongProgressMs = _data.item.duration_ms;
         this.currentSongProgress = _data.progress_ms / _data.item.duration_ms * 100;
 
 
-
         this.currentSongProgressTime = (Math.floor((_data.progress_ms / 1000) / 60)).toString() + ":" + (Math.floor(_data.progress_ms / 1000) % 60).toString().padStart(2, "0");
         this.currentSongDurationTime = (Math.floor((_data.item.duration_ms / 1000) / 60)).toString() + ":" + (Math.floor(_data.item.duration_ms / 1000) % 60).toString().padStart(2, "0");
-        //console.log(data);
 
 
       } else if(instruction == "checkIfLiked"){
@@ -208,8 +203,6 @@ export default {
           playlistSelected = true;
           this.playlists[this.playlists.findIndex(e => e.id == this.currentPlaylist.id)].tracks.total = this.currentPlaylistSongs.length;
         }
-
-        //if _data.total
 
       } else if(instruction == "updateCurrentPlaylist"){
         this.CallApi( 'GET', `https://api.spotify.com/v1/playlists/${this.currentPlaylist.id}/tracks`, null, 'getSongsFromCurrentPlaylist');
@@ -252,7 +245,6 @@ export default {
           this.CallApi("GET", `https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=${this.currentFavType}`, null, "updateTopSongList" )
 
         }
-        //
       } else if(instruction == "updateTopSongList"){
         let _addData = {"uris": [], "position": 0};
         console.log(_data);
@@ -279,8 +271,6 @@ export default {
           }
         } else {
           const _id = _data.href.split("/")[5];
-          // console.log(this.allPlaylists.filter(e => e.id == _id)[0]);
-          // console.log(_data.items);
           this.allPlaylists.filter(e => e.id == _id)[0].tracks.items = this.allPlaylists.filter(e => e.id == _id)[0].tracks.items.concat(_data.items);
 
           if(_data.next != null){
@@ -405,9 +395,6 @@ export default {
         this.CallApi("GET", `https://api.spotify.com/v1/me/top/tracks?limit=${(_length < 50)? _length : 50}&time_range=${_type}`, null, "createPlaylist" )
       }
 
-
-
-
     },
 
     GetImage(){
@@ -475,24 +462,6 @@ export default {
       });
     },
     sortTopSongs(){
-      // this.allPlaylists.forEach((e) => {
-      //   console.log(e);
-      //   e.tracks.items.forEach((f) =>{
-      //     // console.log(f)
-      //     if(this.topPlaylistSongs.filter(g => g.track.uri == f.track.uri).length > 0){
-      //       this.topPlaylistSongs.filter(g => g.track.uri == f.track.uri)[0].count ++;
-      //       this.topPlaylistSongs.filter(g => g.track.uri == f.track.uri)[0].playlists.push(e.name);
-      //     } else {
-      //       f.count = 1;
-      //       f.playlists = [];
-      //       f.playlists.push(e.name);
-      //       console.log(f.playlists);
-      //       this.topPlaylistSongs.push(f);
-      //     }
-      //   })
-      // });
-
-
 
       for(let i = 0; i < this.allPlaylists.length; i++){
         console.log(this.allPlaylists[i].name);
@@ -519,10 +488,6 @@ export default {
         this.experimental = true;
       }
     },
-
-    // showTopSongPlaylists(_playlists){
-    //   this.currentSongPlaylists = _playlists;
-    // },
 
   },
   created() {
@@ -739,9 +704,7 @@ export default {
     </div>
 
     <div id="interaction">
-      <!-- <div id="topbar">
 
-      </div> -->
       <div id="drawer" class="unmarkable">
 
         <div id="drawerTopArea" class="levelOneContainer">
@@ -1370,11 +1333,6 @@ export default {
 
 
 
-
-
-
-
-
   #player{
     position: absolute;
     bottom: 0px;
@@ -1592,21 +1550,4 @@ export default {
   #playerQue{
     right: 200px;
   }
-
-
-
-
-
-
-
-  #topbar{
-    position: relative;
-    top: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 1800px;
-    height: 100px;
-    background-color: rgba(255, 0, 0, 0.192);
-  }
-
 </style>
