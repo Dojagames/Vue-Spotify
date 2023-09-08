@@ -415,6 +415,8 @@ export default {
         this.CallApi("GET", `https://api.spotify.com/v1/albums/${id}`, null, "GetImage" )
       } else if(type == "playlist"){
         this.CallApi("GET", `https://api.spotify.com/v1/playlists/${id}`, null, "GetImage" )
+      } else if(type == "artist"){
+        this.CallApi("GET", `https://api.spotify.com/v1/artists/${id}`, null, "GetImage" )
       }
 
       this.inputLink = "";
@@ -753,7 +755,7 @@ export default {
           <input type="checkbox" v-model="saveUri"> create new Playlist<br><br><br>
 
 
-          <input type="text" v-model="inputLink" style="background-color: transparent; width: 760px;" placeholder="paste a Link to a playlist or an album to get there Cover" >
+          <input type="text" v-model="inputLink" style="background-color: transparent; width: 760px;" placeholder="paste a Link to a playlist / album / artist to get there Cover" >
           <button @click="GetImage" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;">Get Image</button><br><br>
 
           <button style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;" @click="openExperimental()" v-if="!experimental">enable experimental features</button>
