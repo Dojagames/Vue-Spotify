@@ -798,7 +798,7 @@ export default {
               <div id="playlistEditorFilterMenu" :class="FilterOpen? '': 'invisible'" @click.self="FilterOpen = false">
                 <div id="playlistFilterModalInner">
                   <p style="position: absolute; right: 15px; top: -5px; font-weight: bold; font-size: large;" @click="FilterOpen = false" class="clickable">x</p>
-                  Filter by
+                  <h3 style="margin: 0;">Filter by</h3>
                   <br><br>
                   duplicates: <input type="checkbox" v-model="playlistFilters.duplicates"><br>
                   release: after <input type="date" v-model="playlistFilters.release.after" style="background-color: transparent; border: none;"> before <input type="date" v-model="playlistFilters.release.before" style="background-color: transparent; border: none;"><br>
