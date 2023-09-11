@@ -513,7 +513,7 @@ export default {
           } else {
             rect = target.getBoundingClientRect();
           }
-          this.volumeClickWidth = Math.round(((event.clientX - rect.left) / rect.width * 100) / 5) * 5;
+          this.volumeClickWidth = Math.round(((event.clientX - rect.left) / rect.width * 100) / 2) * 2;
           this.CallApi("PUT", `https://api.spotify.com/v1/me/player/volume?volume_percent=${this.volumeClickWidth}`, null);
         }
         else if(target.id == "playerProgress" || target.id == "playerProgressCurrent"){
@@ -705,7 +705,7 @@ export default {
       </div>
     </div>
 
-    <div id="interaction">
+    <div id="interaction" @keydown.esc="FilterOpen = false; AddSelectionOpen = false " tabindex="-1">
 
       <div id="drawer" class="unmarkable">
 
@@ -797,11 +797,11 @@ export default {
 
 
 
-              <div id="playlistEditorFilterMenu" :class="FilterOpen? '': 'invisible'" @click.self="FilterOpen = false">
+              <div id="playlistEditorFilterMenu" v-if='FilterOpen==true' @click.self="FilterOpen = false">
                 <div id="playlistFilterModalInner">
                   <p style="position: absolute; right: 15px; top: -5px; font-weight: bold; font-size: large;" @click="FilterOpen = false" class="clickable">x</p>
-                  <h3 style="margin: 0;">Filter by</h3>
-                  <br><br>
+                  <h3>Filter by</h3>
+                  
                   duplicates: <input type="checkbox" v-model="playlistFilters.duplicates"><br>
                   release: after <input type="date" v-model="playlistFilters.release.after" style="background-color: transparent; border: none;"> before <input type="date" v-model="playlistFilters.release.before" style="background-color: transparent; border: none;"><br>
                   length (in seconds): longer than <input type="text" v-model="playlistFilters.length.longer" style="background-color: transparent; border: 1px solid white; border-radius: 4px;"> shorter then <input type="text" v-model="playlistFilters.length.shorter" style="background-color: transparent; border: 1px solid white; border-radius: 4px;"><br>
@@ -814,7 +814,7 @@ export default {
                     {{ list.name }}
                   </div>
                 </div>
-                <button @click="AddSelectionOpen = !AddSelectionOpen" class="playlistEditorButtonsBtns clickable">add Selection to other Playlist</button>
+                <button @click="AddSelectionOpen = !AddSelectionOpen" class="playlistEditorButtonsBtns clickable" :style="AddSelectionOpen? 'border-color: var(--accentGreen)': ''">add Selection to other Playlist</button>
                 <button @click="DeleteSelection()" class="playlistEditorButtonsBtns clickable">delete Selection</button>
                 <button id="saveBtnPlaylistEditor" @click="SaveCurrentPlaylist()" class="clickable playlistEditorButtonsBtns">save Selection</button>
               </div>
@@ -1169,7 +1169,7 @@ export default {
     width: 660px;
     height: 140px;
     padding: 20px;
-    background-color: #101014;
+    background-color: #221727;
     border-radius: 12px;
 
     position: absolute;
@@ -1177,6 +1177,17 @@ export default {
     top: 50%;
     transform: translate(-50%, -50%);
   }
+
+
+  #playlistFilterModalInner *{
+    margin-top: 10px;
+  }
+
+  #playlistFilterModalInner h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
+
 
   #playlistEditorButtons{
     position: absolute;
@@ -1197,7 +1208,7 @@ export default {
     transform: translateY(40px);
     width: 190px;
     height: 280px;
-    background-color: rgba(255, 0, 0, 0.123);
+    background-color: rgba(0, 0, 0, 0.199);
     z-index: 4;
     overflow-y: scroll;
   }
