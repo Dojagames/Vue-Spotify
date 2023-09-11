@@ -5,9 +5,6 @@ const AUTHORIZE = "https://accounts.spotify.com/authorize"
 const TOKEN = "https://accounts.spotify.com/api/token";
 const USER = 'https://accounts.spotify.com/v1/me'
 
-let client_id = undefined;
-let client_secret = undefined;
-
 var access_token = undefined;
 var refresh_token = undefined;
 

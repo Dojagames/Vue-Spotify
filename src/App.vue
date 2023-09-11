@@ -694,8 +694,8 @@ export default {
   </div>
 
 
-  <div id="loginWrapper" v-if="window === 'login' && !loggedIn">
-
+  <div id="loginWrapper" v-if="window === 'login'">
+    
   </div>
 
   <div id="mainWrapper" v-else>
@@ -867,8 +867,8 @@ export default {
                   </small>
                 </div>
                 <div id="playerLiked" class="unmarkable">
-                  <img v-if="isCurrentSongLiked" src="iconation/heart_green.png" class="likedIconPlayer">
-                  <img v-else src="iconation/heart.png" class="likedIconPlayer">
+                  <img v-if="isCurrentSongLiked" src="./assets/iconation/heart_green.png" class="likedIconPlayer">
+                  <img v-else src="./assets/iconation/heart.png" class="likedIconPlayer">
                 </div>
 
             </div>
@@ -880,19 +880,19 @@ export default {
 
             <div id="playerCenterBarTop">
               <div id="playerShuffle" class="playerButton">
-                <img v-if="player.shuffle_state" src="iconation/shuffle_active.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/shuffle?state=false', null )">
-                <img v-else src="iconation/shuffle.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/shuffle?state=true', null )">
+                <img v-if="player.shuffle_state" src="./assets/iconation/shuffle_active.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/shuffle?state=false', null )">
+                <img v-else src="./assets/iconation/shuffle.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/shuffle?state=true', null )">
               </div>
-              <img id="playerPrevious" src="iconation/rewind-button.png" class="playerButton" @click="CallApi('POST', 'https://api.spotify.com/v1/me/player/previous', null )">
+              <img id="playerPrevious" src="./assets/iconation/rewind-button.png" class="playerButton" @click="CallApi('POST', 'https://api.spotify.com/v1/me/player/previous', null )">
               <div id="playerPlay" class="playerButton">
-                <img v-if="player.is_playing" src="iconation/pause.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/pause', null )">
-                <img v-else src="iconation/play-button.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/play', {} )">
+                <img v-if="player.is_playing" src="./assets/iconation/pause.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/pause', null )">
+                <img v-else src="./assets/iconation/play-button.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/play', {} )">
               </div>
-              <img id="playerNext" src="iconation/skip.png" class="playerButton" @click="CallApi('POST', 'https://api.spotify.com/v1/me/player/next', null )">
+              <img id="playerNext" src="./assets/iconation/skip.png" class="playerButton" @click="CallApi('POST', 'https://api.spotify.com/v1/me/player/next', null )">
               <div id="playerLoop" class="playerButton">
-                <img v-if="player.repeat_state == 'track'" src="iconation/RepeatOnce.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/repeat?state=off', null )">
-                <img v-else-if="player.repeat_state == 'context'" src="iconation/repeat_active.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/repeat?state=track', null )">
-                <img v-else src="iconation/repeat.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/repeat?state=context', null )">
+                <img v-if="player.repeat_state == 'track'" src="./assets/iconation/RepeatOnce.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/repeat?state=off', null )">
+                <img v-else-if="player.repeat_state == 'context'" src="./assets/iconation/repeat_active.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/repeat?state=track', null )">
+                <img v-else src="./assets/iconation/repeat.png" @click="CallApi('PUT', 'https://api.spotify.com/v1/me/player/repeat?state=context', null )">
               </div>
             </div>
 
@@ -908,11 +908,11 @@ export default {
 
 
           <div id="playerRightBar">
-            <img class="playerRightBarImg" id="playerQue" src="iconation/activeList.png" v-if="mode == 'que'" @click="mode = previous_mode">
-            <img class="playerRightBarImg" id="playerQue" src="iconation/list.png" v-else @click="previous_mode = mode; mode = 'que'; GetQue()">
+            <img class="playerRightBarImg" id="playerQue" src="./assets/iconation/activeList.png" v-if="mode == 'que'" @click="mode = previous_mode">
+            <img class="playerRightBarImg" id="playerQue" src="./assets/iconation/list.png" v-else @click="previous_mode = mode; mode = 'que'; GetQue()">
             <div>
-              <img class="playerRightBarImg" id="playerDevices" src="iconation/deviced_active.png" v-if="deviceActive" @click="deviceActive = false">
-              <img class="playerRightBarImg" id="playerDevices" src="iconation/deviced.png" v-else  @click="deviceActive = true; GetDevices()">
+              <img class="playerRightBarImg" id="playerDevices" src="./assets/iconation/deviced_active.png" v-if="deviceActive" @click="deviceActive = false">
+              <img class="playerRightBarImg" id="playerDevices" src="./assets/iconation/deviced.png" v-else  @click="deviceActive = true; GetDevices()">
               <div id="deviceList" :class="deviceActive? 'deviceShow': 'deviceHide'">
                 <h3><b>active Device</b></h3>
                 <p>{{ activeDevice.name }}</p>
@@ -921,18 +921,18 @@ export default {
                   <div v-for="device in devices" id="deviceListAvailible" @click="ChangeDevice(device)">
                   <p>{{ device.name }}</p>
 
-                  <img class="availibleImg" src="iconation/pc.png" v-if="device.type == 'Computer'">
-                  <img class="availibleImg" src="iconation/smartphone.png" v-else-if="device.type == 'Smartphone'">
-                  <img class="availibleImg" src="iconation/speaker.png" v-else="device.type == 'Speaker'">
+                  <img class="availibleImg" src="./assets/iconation/pc.png" v-if="device.type == 'Computer'">
+                  <img class="availibleImg" src="./assets/iconation/smartphone.png" v-else-if="device.type == 'Smartphone'">
+                  <img class="availibleImg" src="./assets/iconation/speaker.png" v-else="device.type == 'Speaker'">
                 </div>
                 </div>
                 
               </div>
             </div>
             <div id="playerVolume">
-              <img class="playerRightBarImg" v-if="player.device.volume_percent > 90" src="iconation/speaker-full.png">
-              <img class="playerRightBarImg" v-else-if=" 0 < player.device.volume_percent" src="iconation/speaker-medium.png">
-              <img class="playerRightBarImg" v-else src="iconation/speaker-muted.png">
+              <img class="playerRightBarImg" v-if="player.device.volume_percent > 90" src="./assets/iconation/speaker-full.png">
+              <img class="playerRightBarImg" v-else-if=" 0 < player.device.volume_percent" src="./assets/iconation/speaker-medium.png">
+              <img class="playerRightBarImg" v-else src="./assets/iconation/speaker-muted.png">
               <div id="volumeBar">
                 <div id="volumeBelowBar" :style="{'width': player.device.volume_percent + '%'}"></div>
               </div>

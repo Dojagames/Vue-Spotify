@@ -3,7 +3,8 @@ export default {
 
     data(){
         return {
-            
+            client_id: '934b2170ecfb4f34af81a0d0b159d851',
+            client_secret: '61095338f0164dc98b728d7c930fe50e',
         }
     },
     components: {
@@ -14,17 +15,14 @@ export default {
     },
     methods: {
         OnPageLoad(){
-            client_id = localStorage.getItem("client_id");
-            client_secret = localStorage.getItem("client_secret");
-
             if ( window.location.search.length > 0 ){
                 this.handleRedirect();
             }
             else{
                 access_token = localStorage.getItem("access_token");
                 if ( access_token == null ){
-                    // localStorage.setItem("login", false);
-                    // location.reload();
+                     localStorage.setItem("login", false);
+                     this.RequestAuthorization();
                 } else {
                     this.refreshAccessToken();
                 }
@@ -53,8 +51,8 @@ export default {
             let body = "grant_type=authorization_code";
             body += "&code=" + code; 
             body += "&redirect_uri=" + encodeURI(redirect_uri);
-            body += "&client_id=" + client_id;
-            body += "&client_secret=" + client_secret;
+            body += "&client_id=" + this.client_id;
+            body += "&client_secret=" + this.client_secret;
             this.callAuthorizationApi(body);
         },
 
@@ -62,7 +60,7 @@ export default {
             let xhr = new XMLHttpRequest();
             xhr.open("POST", TOKEN, true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.setRequestHeader('Authorization', 'Basic ' + btoa(client_id + ":" + client_secret));
+            xhr.setRequestHeader('Authorization', 'Basic ' + btoa(this.client_id + ":" + this.client_secret));
             xhr.send(body);
 
             var tempScope = this;
@@ -95,19 +93,14 @@ export default {
             refresh_token = localStorage.getItem("refresh_token");
             let body = "grant_type=refresh_token";
             body += "&refresh_token=" + refresh_token;
-            body += "&client_id=" + client_id;
+            body += "&client_id=" + this.client_id;
             this.callAuthorizationApi(body);
         },
 
-        RequestAuthorization(_id, _secret){
-        client_id = _id;
-        client_secret = _secret;
-
-        localStorage.setItem("client_id", _id);
-        localStorage.setItem("client_secret", _secret); // In a real app you should not expose your client_secret to the user
+        RequestAuthorization(){
 
         let url = AUTHORIZE;
-        url += "?client_id=" + _id;
+        url += "?client_id=" + this.client_id;
         url += "&response_type=code";
         url += "&redirect_uri=" + redirect_uri;
         url += "&show_dialog=true";
