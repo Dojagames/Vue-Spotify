@@ -95,6 +95,8 @@ export default {
       AddSelectionOpen: false,
       FilterOpen: false,
       experimental: false,
+
+      mobile: false,
     }
   },
   components: {
@@ -284,7 +286,6 @@ export default {
 
     HandleAuthResponse(a){
       console.log(a);
-      RefreshTimer();
 
       this.CallApi( "GET", "https://api.spotify.com/v1/me/player", null, "playerState");
 
@@ -504,31 +505,33 @@ export default {
     }
 
     document.addEventListener("mousedown", (event) => {
-        const target = event.target;
+      const target = event.target;
 
-        if(target.id == "volumeBelowBar" || target.id == "volumeBar" ){
-          let rect;
-          if(target.id == "volumeBelowBar"){
-            rect = target.parentElement.getBoundingClientRect();
-          } else {
-            rect = target.getBoundingClientRect();
-          }
-          this.volumeClickWidth = Math.round(((event.clientX - rect.left) / rect.width * 100) / 2) * 2;
-          this.CallApi("PUT", `https://api.spotify.com/v1/me/player/volume?volume_percent=${this.volumeClickWidth}`, null);
+      if(target.id == "volumeBelowBar" || target.id == "volumeBar" ){
+        let rect;
+        if(target.id == "volumeBelowBar"){
+          rect = target.parentElement.getBoundingClientRect();
+        } else {
+          rect = target.getBoundingClientRect();
         }
-        else if(target.id == "playerProgress" || target.id == "playerProgressCurrent"){
-          let rect;
-          if(target.id == "playerProgressCurrent"){
-            rect = target.parentElement.getBoundingClientRect();
-          } else {
-            rect = target.getBoundingClientRect();
-          }
-          const _progressClickWidth = Math.round((event.clientX - rect.left) / rect.width * this.SongProgressMs);
-          this.CallApi("PUT", `https://api.spotify.com/v1/me/player/seek?position_ms=${_progressClickWidth}`, null);
-
+        this.volumeClickWidth = Math.round(((event.clientX - rect.left) / rect.width * 100) / 2) * 2;
+        this.CallApi("PUT", `https://api.spotify.com/v1/me/player/volume?volume_percent=${this.volumeClickWidth}`, null);
+      }
+      else if(target.id == "playerProgress" || target.id == "playerProgressCurrent"){
+        let rect;
+        if(target.id == "playerProgressCurrent"){
+          rect = target.parentElement.getBoundingClientRect();
+        } else {
+          rect = target.getBoundingClientRect();
         }
+        const _progressClickWidth = Math.round((event.clientX - rect.left) / rect.width * this.SongProgressMs);
+        this.CallApi("PUT", `https://api.spotify.com/v1/me/player/seek?position_ms=${_progressClickWidth}`, null);
 
-      });
+      }
+
+    });
+
+    this.mobile = isMobile();
 
 
   },
@@ -689,16 +692,25 @@ export default {
 
 <template>
   <spotify_auth @response="(a) => HandleAuthResponse(a)" ref="auth_child"/>
-  <div id="sessionTimer">
-    <p id="ct">remaining session time: 60:00</p>
-  </div>
 
 
   <div id="loginWrapper" v-if="window === 'login'">
-    
+
+  </div>
+
+  <div id="viewer" v-else-if="window != 'login' && mobile == true">
+    <button @click="CreatePlaylist('short_term','your top Songs from the last 30 Days', 50, 'top 30 days')" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 8px; width: 80%; margin-left: 10%; height: 50px; margin-bottom: 10px; font-size: x-large;">top 30 Days</button><br>
+    <button @click="CreatePlaylist('medium_term','your top Songs from the last 6Months', 50, 'top 6 months')" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 8px; width: 80%; margin-left: 10%; height: 50px;  margin-bottom: 10px; font-size: x-large;">top 6 Months</button><br>
+    <button @click="CreatePlaylist('long_term','your top Songs ever', 50, 'all time favs')" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 8px; width: 80%; margin-left: 10%; height: 50px;  margin-bottom: 10px; font-size: x-large;">top All time</button><br>
+  
+    <input type="text" v-model="inputLink" style="background-color: transparent; width: 80%; margin-left: 10%; border: none; border-bottom: 1px solid white;" placeholder="paste a Link to a playlist / album / artist to get there Cover" ><br>
+    <button @click="GetImage" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 8px; width: 30%; margin-left: 35%; height: 45px;  margin-top: 10px; font-size: x-large;">Get Image</button><br><br>
+
   </div>
 
   <div id="mainWrapper" v-else>
+
+    <div id="desktop"></div>
     <div id="userprofile">
       <div id="userIcon" class="clickable unmarkable">
         <img v-bind:src="user_img">
@@ -827,7 +839,7 @@ export default {
               <div class="platlistEditorLowerSectionContainer" style="padding-bottom: 15px; position: fixed; background: linear-gradient(180deg, var(--firstElementBackground) 40%, rgba(255, 0, 0, 0) 100%);">
                 <div class="platlistEditorLowerSectionContainerLine playlistLineLong" style="color: var(--accentGreen); font-weight: bold;">Name <p v-if="playlistFilterOptions == 'name_a'" @click="playlistFilterOptions = 'name_d'" class="clickable">▲</p><p v-else-if="playlistFilterOptions == 'name_d'" @click="playlistFilterOptions = ''" class="clickable" >▼</p><p v-else @click="playlistFilterOptions = 'name_a'" class="clickable">-</p> </div>
                 <div class="platlistEditorLowerSectionContainerLine playlistLineLong" style="color: var(--accentGreen); font-weight: bold;">Album <p v-if="playlistFilterOptions == 'album_a'" @click="playlistFilterOptions = 'album_d'" class="clickable">ʌ</p><p v-else-if="playlistFilterOptions == 'album_d'" @click="playlistFilterOptions = ''" class="clickable">v</p><p v-else @click="playlistFilterOptions = 'album_a'" class="clickable">-</p> </div>
-                <div class="platlistEditorLowerSectionContainerLine playlistLineLong" style="color: var(--accentGreen); font-weight: bold;">Artist <p v-if="playlistFilterOptions == 'artist_a'" @click="playlistFilterOptions = 'artist_d'" class="clickable">ʌ</p><p v-else-if="playlistFilterOptions == 'artist_d'" @click="playlistFilterOptions = ''" class="clickable">v</p><p v-else @click="playlistFilterOptions = 'artist_a'" class="clickable">-</p> </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineMediumLong" style="color: var(--accentGreen); font-weight: bold;">Artist <p v-if="playlistFilterOptions == 'artist_a'" @click="playlistFilterOptions = 'artist_d'" class="clickable">ʌ</p><p v-else-if="playlistFilterOptions == 'artist_d'" @click="playlistFilterOptions = ''" class="clickable">v</p><p v-else @click="playlistFilterOptions = 'artist_a'" class="clickable">-</p> </div>
                 <div class="platlistEditorLowerSectionContainerLine playlistLineMedium" style="color: var(--accentGreen); font-weight: bold;">Release Date <p v-if="playlistFilterOptions == 'release_a'" @click="playlistFilterOptions = 'release_d'" class="clickable">ʌ</p><p v-else-if="playlistFilterOptions == 'release_d'" @click="playlistFilterOptions = ''" class="clickable">v</p><p v-else @click="playlistFilterOptions = 'release_a'" class="clickable">-</p> </div>
                 <div class="platlistEditorLowerSectionContainerLine playlistLineShort" style="color: var(--accentGreen); font-weight: bold;">Length <p v-if="playlistFilterOptions == 'length_a'" @click="playlistFilterOptions = 'length_d'" class="clickable">ʌ</p><p v-else-if="playlistFilterOptions == 'length_d'" @click="playlistFilterOptions = ''" class="clickable">v</p><p v-else @click="playlistFilterOptions = 'length_a'" class="clickable">-</p> </div>
                 <div class="platlistEditorLowerSectionContainerLine playlistLineShort" style="color: var(--accentGreen); font-weight: bold;">Popularity <p v-if="playlistFilterOptions == 'pop_a'" @click="playlistFilterOptions = 'pop_d'" class="clickable">ʌ</p><p v-else-if="playlistFilterOptions == 'pop_d'" @click="playlistFilterOptions = ''" class="clickable">v</p><p v-else @click="playlistFilterOptions = 'pop_a'" class="clickable">-</p> </div>
@@ -838,7 +850,7 @@ export default {
               <div v-for="songs in filteredPlaylist" class="platlistEditorLowerSectionContainer">
                 <div class="platlistEditorLowerSectionContainerLine playlistLineLong" style="cursor: pointer;" @click="AddToQue(songs.track.uri)"> {{ songs.track.name }} </div>
                 <div class="platlistEditorLowerSectionContainerLine playlistLineLong"> {{ songs.track.album.name }} </div>
-                <div class="platlistEditorLowerSectionContainerLine playlistLineLong"> {{ songs.track.artists[0].name }} </div>
+                <div class="platlistEditorLowerSectionContainerLine playlistLineMediumLong"> {{ songs.track.artists[0].name }} </div>
                 <div class="platlistEditorLowerSectionContainerLine playlistLineMedium"> {{ songs.track.album.release_date }} </div>
                 <div class="platlistEditorLowerSectionContainerLine playlistLineShort"> {{ Math.floor(songs.track.duration_ms / 1000 / 60 % 60).toString().padStart(2, "0") }}:{{ Math.floor(songs.track.duration_ms / 1000 % 60).toString().padStart(2, "0") }} </div>
                 <div class="platlistEditorLowerSectionContainerLine playlistLineShort"> {{ songs.track.popularity }} </div>
@@ -1258,11 +1270,16 @@ export default {
   }
 
   .playlistLineLong{
-    width: 340px;
+    width: 355px;
   }
 
   .playlistLineShort{
     width: 95px;
+  }
+
+  .playlistLineMediumLong{
+    width: 220px;
+    padding: 0 5px;
   }
 
   .playlistLineMedium{
