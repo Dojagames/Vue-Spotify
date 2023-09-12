@@ -798,15 +798,18 @@ export default {
         </div>
 
         <div id="playlistCreator" v-else-if="mode == 'create'">
+          <h3>Playlist Creator</h3>
           <button @click="CreatePlaylist('short_term','your top Songs from the last 30 Days', 50, 'top 30 days')" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;">top 30 Days</button>
           <button @click="CreatePlaylist('medium_term','your top Songs from the last 6Months', 50, 'top 6 months')" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;">top 6 Months</button>
           <button @click="CreatePlaylist('long_term','your top Songs ever', 50, 'all time favs')" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;">top All time</button><br>
           <input type="checkbox" v-model="saveUri"> create new Playlist<br><br><br>
 
 
+          <h3>Download Images</h3>
           <input type="text" v-model="inputLink" style="background-color: transparent; width: 760px;" placeholder="paste a Link to a playlist / album / artist to get there Cover" >
           <button @click="GetImage" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;">Get Image</button><br><br>
 
+          <h3>experimental</h3>
           <button style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;" @click="openExperimental()" v-if="!experimental">enable experimental features</button>
           <div id="experimentalSection" v-if="experimental">
             <button @click="getTopSongs()">get Top Songs in Playlists</button>
