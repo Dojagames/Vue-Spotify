@@ -85,7 +85,7 @@ export default {
       activeDevice: "",
 
       que: [],
-      currentSong: {name: "", },
+      currentSong: {name: "", artists: [""]},
 
 
       topPlaylistSongs: [],
@@ -256,8 +256,14 @@ export default {
         this.CallApi("POST", `https://api.spotify.com/v1/playlists/${this.currentFavId}/tracks`, _addData);
       } else if(instruction == "getQue"){
         console.log(_data);
-        this.currentSong = _data.currently_playing;
-        this.que = _data.queue;
+       
+        if(_data.currently_playing != null){
+          console.log("test")
+          this.currentSong = _data.currently_playing;  
+          this.que = _data.queue;
+        }
+        
+       
       } else if(instruction == "getDevices"){
         this.devices = _data.devices.filter(e => !e.is_active);
         this.activeDevice = _data.devices.filter(e => e.is_active)[0];
