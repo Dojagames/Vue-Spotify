@@ -258,7 +258,6 @@ export default {
         console.log(_data);
        
         if(_data.currently_playing != null){
-          console.log("test")
           this.currentSong = _data.currently_playing;  
           this.que = _data.queue;
         }
@@ -813,17 +812,17 @@ export default {
           <button style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;" @click="openExperimental()" v-if="!experimental">enable experimental features</button>
           <div id="experimentalSection" v-if="experimental">
             <button @click="getTopSongs()">get Top Songs in Playlists</button>
-          <button @click="sortTopSongs()">show Top Songs in Playlists</button>
-          <div id="topsonglist" style=" width: 50%; height: 400px; overflow-y: scroll;">
-            <div v-for="songs in topPlaylistSongs" @click="currentSongPlaylists = songs.playlists" class="clickable">
-              {{ songs.track.name }} - {{ songs.track.artists[0].name }} : {{ songs.count }}
+            <button @click="sortTopSongs()">show Top Songs in Playlists</button>
+            <div id="topsonglist" style=" width: 50%; height: 400px; overflow-y: scroll;">
+              <div v-for="songs in topPlaylistSongs" @click="currentSongPlaylists = songs.playlists" class="clickable">
+                {{ songs.track.name }} - {{ songs.track.artists[0].name }} : {{ songs.count }}
+              </div>
             </div>
-          </div>
-          <div id="topSongPlaylists" style=" position: relative; left: 50%; top: -400px; width: 30%; height: 300px; overflow-y: scroll;">
-            <div v-for="playlist in currentSongPlaylists">
-              {{ playlist.name }} -  {{ playlist.position }}
+            <div id="topSongPlaylists" style=" position: relative; left: 50%; top: -400px; width: 30%; height: 300px; overflow-y: scroll;">
+              <div v-for="playlist in currentSongPlaylists">
+                {{ playlist.name }} -  {{ playlist.position }}
+              </div>
             </div>
-          </div>
           </div>
         </div>
 
