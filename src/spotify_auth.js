@@ -1,5 +1,5 @@
-var redirect_uri = "https://spotify.jonx.dev/callback"; 
-//var redirect_uri = "http://127.0.0.1:5173/callback"; 
+//var redirect_uri = "https://spotify.jonx.dev/callback"; 
+var redirect_uri = "http://localhost:5174/callback"; 
 
 const AUTHORIZE = "https://accounts.spotify.com/authorize"
 const TOKEN = "https://accounts.spotify.com/api/token";

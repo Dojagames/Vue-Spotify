@@ -3,8 +3,8 @@ export default {
 
     data(){
         return {
-            client_id: '934b2170ecfb4f34af81a0d0b159d851',
-            client_secret: '61095338f0164dc98b728d7c930fe50e',
+            client_id: 'f78e76cae77d421db035d02902b23d81',
+            client_secret: '3c5a0575e480464ead3eda735634bd09',
         }
     },
     components: {

@@ -72,6 +72,9 @@ export default {
       saveUri: false,
 
       inputLink: "",
+      inputLinkUri: "",
+
+      Uris: [],
 
       currentFavId: "",
       currentFavType: "",
@@ -284,6 +287,15 @@ export default {
             this.CallApi( 'GET', _data.next, null, 'getAllPlaylists');
           }
         }
+      } else if(instruction == "getUris"){
+        _data.items.forEach(e => {
+          this.Uris.push(e.track.id);
+        });
+        if(_data.next){
+          this.CallApi( 'GET', _data.next, null, 'getUris');
+        } else {
+          console.log(this.Uris)
+        }
       }
     },
 
@@ -426,6 +438,12 @@ export default {
       }
 
       this.inputLink = "";
+    },
+
+    GetUris(){
+      const id = this.inputLinkUri.substring(8).split("?")[0].split("/")[2];
+      this.CallApi( 'GET', `https://api.spotify.com/v1/playlists/${id}/tracks`, null, 'getUris');
+      this.inputLinkUri = "";
     },
 
     AddToQue(_uri){
@@ -808,6 +826,14 @@ export default {
           <input type="text" v-model="inputLink" style="background-color: transparent; width: 760px;" placeholder="paste a Link to a playlist / album / artist to get there Cover" >
           <button @click="GetImage" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;">Get Image</button><br><br>
 
+
+          <h3>Get Uris</h3>
+          <input type="text" v-model="inputLinkUri" style="background-color: transparent; width: 760px;" placeholder="paste a Link to a playlist / album / artist to get there Cover" >
+          <button @click="GetUris()" style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;">Get Uris</button><br><br>
+
+          <div>
+            <p style="line-height: 10%;" v-for="Uri in Uris">"{{ Uri }}",<br></p>
+          </div>
           <h3>experimental</h3>
           <button style="background-color: transparent; border: 1px solid white; outline: none; border-radius: 4px;" @click="openExperimental()" v-if="!experimental">enable experimental features</button>
           <div id="experimentalSection" v-if="experimental">
